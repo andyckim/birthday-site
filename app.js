@@ -44,51 +44,102 @@
   const SPARKS = [[12,15,5,0],[25,35,6,.5],[38,22,4,1],[52,45,7,1.5],[68,18,5,2],[81,40,6,.3],[15,65,4,.8],[45,72,5,1.2],[72,68,6,1.8],[88,25,4,2.2],[35,8,5,.6],[62,85,7,1.4],[92,55,5,.9],[8,48,6,1.6],[78,12,4,2],[28,80,5,.4],[55,28,6,1.1],[18,92,4,1.9]];
   $("#sparkles").innerHTML = SPARKS.map(([l, t, s, d]) => `<i style="left:${l}%;top:${t}%;width:${s}px;height:${s}px;animation-delay:${d}s"></i>`).join("");
 
-  /* --------------------------------------------------------- mascot */
-  // Drawn fallback for empty photo/GIF slots: an original little mochi in a party hat.
-  const heartPath = (x, y, s, cls = "m-heart") => `<path class="${cls}" transform="translate(${x} ${y}) scale(${s})" d="M0 4C-6 0-6-5 0-2C6-5 6 0 0 4Z"/>`;
-  function mascot(mood) {
-    let eyes, mouth, extra = "";
-    if (mood === "pleading") {
-      eyes = `<circle class="m-ink" cx="46" cy="70" r="7"/><circle class="m-shine" cx="48.5" cy="67" r="2.6"/><circle class="m-ink" cx="74" cy="70" r="7"/><circle class="m-shine" cx="76.5" cy="67" r="2.6"/>`;
-      mouth = `<path class="m-line" d="M55 86 q2.5-3 5 0 q2.5 3 5 0"/>`;
-    } else if (mood === "pouty") {
-      eyes = `<path class="m-line" d="M40 66 l10 4 M80 66 l-10 4"/><circle class="m-ink" cx="46" cy="73" r="4"/><circle class="m-ink" cx="74" cy="73" r="4"/>`;
-      mouth = `<path class="m-line" d="M53 88 q7-7 14 0"/>`;
-      extra = `<path class="m-tear" d="M92 52 q5 8 0 11 q-5-3 0-11z"/>`;
-    } else if (mood === "love") {
-      eyes = heartPath(46, 69, 1.5) + heartPath(74, 69, 1.5);
-      mouth = `<path class="m-ink" d="M52 80 q8 11 16 0 z"/>`;
-      extra = heartPath(22, 30, 1.2, "m-heart m-float") + heartPath(98, 26, 1, "m-heart m-float") + heartPath(104, 52, .9, "m-heart m-float");
-    } else {
-      eyes = `<path class="m-line" d="M40 71 q6-8 12 0 M68 71 q6-8 12 0"/>`;
-      mouth = `<path class="m-ink" d="M53 79 q7 9 14 0 z"/>`;
-    }
-    return `<svg class="mascot" viewBox="0 0 120 120" role="img" aria-label="A cute little mochi">
-      <ellipse cx="60" cy="112" rx="34" ry="5" fill="#be185d" opacity=".1"/>
-      <ellipse class="m-body" cx="40" cy="106" rx="9" ry="6"/><ellipse class="m-body" cx="80" cy="106" rx="9" ry="6"/>
-      <path class="m-body" d="M60 34c27 0 46 20 46 44 0 20-18 31-46 31S14 98 14 78c0-24 19-44 46-44z"/>
-      <ellipse class="m-body" cx="16" cy="82" rx="7" ry="10" transform="rotate(25 16 82)"/><ellipse class="m-body" cx="104" cy="82" rx="7" ry="10" transform="rotate(-25 104 82)"/>
-      <path class="m-hat" d="M46 40 L74 36 L63 4 Z"/><circle class="m-dot" cx="60" cy="28" r="2.4"/><circle class="m-dot" cx="65" cy="18" r="2"/><circle class="m-pom" cx="63" cy="5" r="5"/>
-      <ellipse class="m-cheek" cx="34" cy="80" rx="7" ry="4.5"/><ellipse class="m-cheek" cx="86" cy="80" rx="7" ry="4.5"/>
-      ${eyes}${mouth}${extra}</svg>`;
+  /* ------------------------------------------------ the birthday cat */
+  // A round cat portrait with a drawn party hat on top.
+  let hatId = 0;
+  function hatSVG() {
+    const id = "hat" + (hatId++);
+    return `<svg class="hat" viewBox="0 0 100 130" aria-hidden="true">
+      <defs>
+        <linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+        <clipPath id="${id}c"><path d="M50 14 L90 116 Q50 128 10 116 Z"/></clipPath>
+      </defs>
+      <path d="M50 14 L90 116 Q50 128 10 116 Z" fill="url(#${id}g)" stroke="#9d174d" stroke-width="3" stroke-linejoin="round"/>
+      <g clip-path="url(#${id}c)" fill="#fde68a" opacity=".95">
+        <path d="M-10 70 L110 30 L110 44 L-10 84 Z"/><path d="M-10 108 L110 68 L110 82 L-10 122 Z"/>
+      </g>
+      <g fill="#fff"><circle cx="42" cy="58" r="3"/><circle cx="60" cy="96" r="3.5"/><circle cx="34" cy="98" r="2.5"/><circle cx="66" cy="62" r="2.2"/></g>
+      <path d="M8 116 q7 -8 14 0 t14 0 t14 0 t14 0 t14 0 t14 0" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="50" cy="12" r="10" fill="#fde68a" stroke="#9d174d" stroke-width="2.5"/>
+    </svg>`;
+  }
+  const catAt = (n) => C.cats[((n % C.cats.length) + C.cats.length) % C.cats.length];
+  function catPic(n, extraClass = "") {
+    const c = catAt(n);
+    const box = document.createElement("div");
+    box.className = ("catpic " + extraClass).trim();
+    box.style.setProperty("--hx", c.hat.x + "%");
+    box.style.setProperty("--hy", c.hat.y + "%");
+    box.style.setProperty("--hr", c.hat.rot + "deg");
+    box.style.setProperty("--hw", (c.hat.size || 40) + "%");
+    box.style.setProperty("--mx", c.mouth.x + "%");
+    box.style.setProperty("--my", c.mouth.y + "%");
+    box.innerHTML = `<img src="${esc(c.src)}" alt="The birthday cat in a party hat">${hatSVG()}`;
+    return box;
   }
 
   /* --------------------------------------------- photo / GIF slots */
-  function media(src, mood, extraClass = "") {
+  // A file path, or "cat:N" for one of the party-hat cats. Missing files fall back to a cat.
+  let catTurn = 0;
+  function media(src, extraClass = "") {
     const box = document.createElement("div");
     box.className = ("media pop " + extraClass).trim();
-    const fallback = () => {
-      box.classList.add("is-mascot");
-      box.innerHTML = mascot(mood) + (showHints && src ? `<span class="hint">add ${esc(src)}</span>` : "");
+    const asCat = (n) => {
+      box.classList.add("is-cat");
+      box.innerHTML = "";
+      box.append(catPic(n));
+      if (showHints && src && !/^cat:/.test(src)) box.insertAdjacentHTML("beforeend", `<span class="hint">add ${esc(src)}</span>`);
     };
-    if (!src) { fallback(); return box; }
+    const m = /^cat:(\d+)$/.exec(src || "");
+    if (m) { asCat(+m[1] - 1); return box; }
+    if (!src) { asCat(catTurn++); return box; }
     const img = new Image();
     img.alt = "Us";
-    img.onerror = fallback;
+    img.onerror = () => asCat(catTurn++);
     img.src = src;
     box.append(img);
     return box;
+  }
+
+  /* --------------------------- the cat pops up and blows confetti */
+  const hornSVG = () => `<svg viewBox="0 0 200 40" aria-hidden="true">
+      <rect x="0" y="12" width="34" height="16" rx="4" fill="#fde68a" stroke="#9d174d" stroke-width="2.5"/>
+      <path d="M32 10 H176 a10 10 0 0 1 0 20 H32 Z" fill="#ec4899" stroke="#9d174d" stroke-width="2.5"/>
+      <g fill="#fff" opacity=".9"><rect x="52" y="10" width="9" height="20"/><rect x="82" y="10" width="9" height="20"/><rect x="112" y="10" width="9" height="20"/><rect x="142" y="10" width="9" height="20"/></g>
+      <circle class="horn__tip" cx="190" cy="20" r="6" fill="#fde68a" stroke="#9d174d" stroke-width="2.5"/>
+    </svg>`;
+  const CONFETTI_COLORS = ["#ec4899", "#f472b6", "#fbcfe8", "#f43f5e", "#fde68a", "#c4b5fd", "#ffffff"];
+  function catBlow(sides = ["left"]) {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!window.confetti || reduce) { confetti(); return; }
+    sides.forEach((side, k) => {
+      const wrap = document.createElement("div");
+      wrap.className = `blower blower--${side}`;
+      wrap.setAttribute("aria-hidden", "true");
+      const pic = catPic((C.blowerCat || 1) - 1 + k);
+      const horn = document.createElement("div");
+      horn.className = "horn";
+      horn.innerHTML = hornSVG();
+      pic.append(horn);
+      wrap.append(pic);
+      document.body.append(wrap);
+      requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add("up")));
+      setTimeout(() => {
+        wrap.classList.add("blowing");
+        setTimeout(() => {
+          const t = horn.querySelector(".horn__tip").getBoundingClientRect();
+          const origin = { x: (t.left + t.width / 2) / innerWidth, y: (t.top + t.height / 2) / innerHeight };
+          const angle = side === "left" ? 58 : 122;
+          [0, 220, 440, 660].forEach((d, i) => setTimeout(() => window.confetti({
+            particleCount: i === 0 ? 90 : 55, angle, spread: 50, startVelocity: 62 - i * 4,
+            origin, colors: CONFETTI_COLORS, scalar: 1.1, ticks: 260, zIndex: 60,
+            shapes: i % 2 ? ["circle"] : ["square", "circle"]
+          }), d));
+        }, 260);
+      }, 650 + k * 150);
+      setTimeout(() => wrap.classList.remove("up", "blowing"), 2800 + k * 150);
+      setTimeout(() => wrap.remove(), 3600 + k * 150);
+    });
   }
 
   /* ---------------------------------------------------------- state */
@@ -171,7 +222,7 @@
     () => {
       const s = el(`<h1 class="title title--xl">Happy Birthday, ${esc(C.herName)}!</h1><div class="photos"></div><p class="lead">${esc(C.introMessage)}</p><button class="btn btn--grad" type="button">Open your surprise ${icon("heart")}</button>`);
       const ph = $(".photos", s);
-      (C.media.intro || []).slice(0, 3).forEach((src, i) => { const m = media(src, ["happy", "love", "happy"][i]); m.style.animationDelay = `${i * 120 + 150}ms`; ph.append(m); });
+      (C.media.intro || []).slice(0, 3).forEach((src, i) => { const m = media(src); m.style.animationDelay = `${i * 120 + 150}ms`; ph.append(m); });
       $(".btn", s).addEventListener("click", () => { confetti(); go(1); });
       return s;
     },
@@ -179,8 +230,8 @@
     // 1. The big question
     () => {
       const s = el(`<h2 class="title">Will you let me spoil you on your birthday?</h2><div class="slot"></div><div class="row"><button class="btn btn--solid" type="button" id="yes">Yes, I'd love to!</button><button class="btn btn--outline" type="button" id="no">No</button></div>`);
-      $(".slot", s).replaceWith(media(C.media.ask, "pleading"));
-      $("#yes", s).addEventListener("click", () => { confetti(); go(2); });
+      $(".slot", s).replaceWith(media(C.media.ask));
+      $("#yes", s).addEventListener("click", () => { catBlow(["left"]); go(2); });
       $("#no", s).addEventListener("click", openNo);
       return s;
     },
@@ -196,7 +247,7 @@
           </div></div>
         <button class="btn btn--grad" type="button" disabled>${icon("clock")} Set our date! ${icon("heart")}</button>`);
       s.prepend(progress(1));
-      $(".slot", s).replaceWith(media(C.media.date, "love"));
+      $(".slot", s).replaceWith(media(C.media.date));
       const next = $(".btn--grad", s);
       ["hour", "minute", "ampm"].forEach((k) => {
         const sel = $("#" + k, s);
@@ -231,7 +282,7 @@
       r.value = answers.excitement;
       r.addEventListener("input", () => { answers.excitement = +r.value; save(); paint(); });
       paint();
-      $(".btn--grad", s).addEventListener("click", () => { go(7); setTimeout(confetti, 500); });
+      $(".btn--grad", s).addEventListener("click", () => { go(7); setTimeout(() => catBlow(["left", "right"]), 400); });
       return s;
     },
 
@@ -251,7 +302,7 @@
         <div class="send"><p class="send__title">Send me your answers</p><p class="send__status" role="status"></p><div class="row"></div></div>
         <button class="restart" type="button">Change my answers</button>`);
       s.prepend(progress(6));
-      $(".slot", s).replaceWith(media(C.media.final, "love"));
+      $(".slot", s).replaceWith(media(C.media.final));
       setupSend(s);
       $(".restart", s).addEventListener("click", () => go(2));
       return s;
@@ -300,7 +351,7 @@
   const modal = $("#no-modal");
   let noMediaSet = false;
   function openNo() {
-    if (!noMediaSet) { $("#no-media").replaceWith(media(C.media.no, "pouty")); noMediaSet = true; }
+    if (!noMediaSet) { $("#no-media").replaceWith(media(C.media.no)); noMediaSet = true; }
     modal.hidden = false; modal.classList.remove("closing");
     $("#no-yes").focus();
   }
@@ -308,7 +359,7 @@
     modal.classList.add("closing");
     setTimeout(() => { modal.hidden = true; if (cb) cb(); }, 200);
   }
-  $("#no-yes").addEventListener("click", () => closeNo(() => { confetti(); go(2); }));
+  $("#no-yes").addEventListener("click", () => closeNo(() => { catBlow(["left"]); go(2); }));
   $("#no-x").addEventListener("click", () => closeNo());
   modal.addEventListener("click", (e) => { if (e.target === modal) closeNo(); });
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeNo(); });

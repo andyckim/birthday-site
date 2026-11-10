@@ -21,21 +21,29 @@ Double-click `index.html`, or from this folder run `python3 -m http.server` and 
 
 Her answers are remembered in her browser, so a reload won't lose them.
 
+## The birthday cat
+
+Your cat, in a drawn party hat, shows up on the question screen, in the "There is no NOOOOO" pop-up, on the calendar step and on the final screen. When she taps **Yes**, a cat pops up from the bottom of the screen and blows a party horn full of confetti. On "It's a date", two cats do it from both corners.
+
+- The photos are `photos/cat-1.jpg`, `cat-2.jpg`, `cat-3.jpg` (cropped from your iPhone pictures).
+- The hat's position, tilt and size for each photo, and where the party horn comes out of the cat's mouth, are under `cats` in `config.js`, in percent of the photo. Nudge those numbers if a hat looks off.
+- `blowerCat` picks which cat does the confetti.
+
 ## Add photos and GIFs
 
-Put files in `photos/` with these names, or open `config.js` and change the names under `media` to match yours:
+Put files in `photos/` with these names, or open `config.js` and change the names under `media`:
 
-| Spot | File |
+| Spot | Default |
 |---|---|
 | Happy Birthday screen (3 photos of you two) | `us-1.jpg`, `us-2.jpg`, `us-3.jpg` |
-| "Will you let me spoil you?" | `ask.gif` |
-| The "There is no NOOOOO" pop-up | `no.gif` |
-| Calendar step | `date.gif` |
-| "It's a date, my love!" | `final.gif` |
+| "Will you let me spoil you?" | `cat:1` |
+| The "There is no NOOOOO" pop-up | `cat:3` |
+| Calendar step | `cat:2` |
+| "It's a date, my love!" | `cat:1` |
 
-Any of these can be a photo or a GIF (`.jpg`, `.png`, `.gif`, `.webp`); just make the extension in `config.js` match. A spot that's still empty shows a little drawn mochi, so the page never looks broken. When you open the site from your own computer, each empty spot also shows the file name it's waiting for.
+`cat:1` to `cat:3` show the party-hat cats. Replace any of them with a file path (`"photos/ask.gif"`) to use your own photo or GIF instead. Any photo spot that's still empty, like the three "us" photos until you add them, shows a party-hat cat so the page never looks broken. When you open the site from your own computer, those spots also show the file name they're waiting for.
 
-Tip: shrink phone photos to about 1200px on the long side so the site loads fast.
+Tip: convert iPhone `.HEIC` photos to `.jpg` and shrink them to about 1200px on the long side so the site loads fast.
 
 ## Edit words and options
 
@@ -79,9 +87,9 @@ Repo **Settings → Pages → Deploy from a branch → `main` / `(root)` → Sav
 ```
 index.html   page shell
 styles.css   pastel look, floating hearts, transitions
-app.js       the steps, calendar, "No" pop-up, sending answers
+app.js       the steps, calendar, "No" pop-up, the confetti cat, sending answers
 config.js    <- everything you edit
-photos/      <- your photos and GIFs
+photos/      <- your photos and GIFs (and the cat)
 ```
 
 ## Credits
