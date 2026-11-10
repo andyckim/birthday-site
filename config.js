@@ -62,6 +62,16 @@ window.BIRTHDAY = {
   ],
   blowerCat: 1,   // which cat (1-3) pops up to blow confetti
 
+  // ---- Love letters on the last slide ------------------------------------
+  // Envelopes that open on hover (or tap on a phone) and pop out a polaroid.
+  // caption = the Sharpie writing on the polaroid; date = when it was taken.
+  letters: [
+    { src: "photos/us-1.jpg", caption: "New York",      date: "7/31/26" },
+    { src: "photos/us-2.jpg", caption: "San Francisco", date: "11/1/26" },
+    { src: "photos/us-3.jpg", caption: "Lotta Wine",    date: "10/30/26" },
+    { src: "photos/us-4.jpg", caption: "Atlanta",       date: "4/26/26" }
+  ],
+
   // ---- The choices -------------------------------------------------------
   // Each step also gets a "Something else" option where she can type her own idea.
   // icon can be: utensils, coffee, fish, flame, wine, home, spa, palette, sun,

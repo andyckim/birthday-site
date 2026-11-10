@@ -270,7 +270,7 @@
     const old = stage.firstElementChild;
     const show = () => {
       step = n;
-      document.querySelectorAll(".runaway").forEach((e) => e.remove());
+      document.querySelectorAll(".runaway, .mailbox--float").forEach((e) => e.remove());
       stage.innerHTML = "";
       stage.append(STEPS[n]());
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -379,7 +379,7 @@
       });
       buildCalendar($(".cal", s), () => { next.disabled = !answers.date; });
       next.disabled = !answers.date;
-      next.addEventListener("click", () => go(3));
+      next.addEventListener("click", () => { roseExplosion(); go(3); });
       return s;
     },
 
@@ -394,7 +394,7 @@
 
     // 6. Excitement
     () => {
-      const s = el(`<h2 class="title">How excited are you for your birthday?</h2>
+      const s = el(`<h2 class="title">How excited are you?</h2>
         <div class="slider-box"><input class="range" type="range" id="excite" min="0" max="100" step="25" aria-label="Excitement level">
           <div class="range-labels"><span>😐 Can't wait!</span><span>🤩 Super duper excited!</span></div></div>
         <div class="big spring">Excitement level: <span id="pct"></span></div>
@@ -440,6 +440,7 @@
         });
         $(".slot", s).replaceWith(duo);
         $(".heart-big", s).remove();
+        addLetters(s);
       } else {
         $(".slot", s).replaceWith(media(C.media.final));
       }
@@ -485,6 +486,89 @@
       }));
     };
     render();
+  }
+
+  /* ----------------------- ~200 roses explode out when she sets the date */
+  let roseShape = null;
+  function roseExplosion() {
+    const c = window.confetti;
+    if (!c) return;
+    if (!roseShape && c.shapeFromText) {
+      try { roseShape = c.shapeFromText({ text: "🌹", scalar: 3 }); } catch (e) { roseShape = null; }
+    }
+    const rose = { shapes: roseShape ? [roseShape] : ["circle"], colors: roseShape ? undefined : ["#e11d48", "#be123c", "#f43f5e"], scalar: 3, flat: true, zIndex: 70 };
+    // One big burst from the middle of the screen in every direction...
+    c({ ...rose, particleCount: 100, spread: 360, startVelocity: 48, gravity: 0.55, ticks: 320, decay: 0.92, origin: { x: 0.5, y: 0.45 } });
+    // ...a second wave a beat later...
+    setTimeout(() => c({ ...rose, particleCount: 60, spread: 360, startVelocity: 36, gravity: 0.5, ticks: 320, decay: 0.92, scalar: 2.4, origin: { x: 0.5, y: 0.5 } }), 180);
+    // ...and roses shooting up from both bottom corners.
+    setTimeout(() => {
+      c({ ...rose, particleCount: 20, angle: 60, spread: 55, startVelocity: 62, ticks: 300, scalar: 2.6, origin: { x: 0, y: 1 } });
+      c({ ...rose, particleCount: 20, angle: 120, spread: 55, startVelocity: 62, ticks: 300, scalar: 2.6, origin: { x: 1, y: 1 } });
+    }, 320);
+  }
+
+  /* ------------------------- love letters that open into polaroids */
+  const ENVELOPE_BACK = '<svg class="letter__svg" viewBox="0 0 86 62" aria-hidden="true"><rect x="2" y="2" width="82" height="58" rx="5" fill="#fbcfe8" stroke="#ec4899" stroke-width="2.5"/></svg>';
+  const ENVELOPE_FRONT = '<svg class="letter__svg" viewBox="0 0 86 62" aria-hidden="true"><path d="M2 8 L43 38 L84 8 V55 a5 5 0 0 1 -5 5 H7 a5 5 0 0 1 -5 -5 Z" fill="#fff5f9" stroke="#ec4899" stroke-width="2.5" stroke-linejoin="round"/><path d="M3 58 L33 32 M83 58 L53 32" stroke="#f9a8d4" stroke-width="2" stroke-linecap="round"/></svg>';
+  const ENVELOPE_FLAP = '<svg class="letter__svg" viewBox="0 0 86 62" aria-hidden="true"><path d="M2 7 a5 5 0 0 1 5 -5 h72 a5 5 0 0 1 5 5 L43 40 Z" fill="#fde2ea" stroke="#ec4899" stroke-width="2.5" stroke-linejoin="round"/><path transform="translate(43 34) scale(.62)" d="M0 7C-11 0-11-9 0-4C11-9 11 0 0 7Z" fill="#f43f5e" stroke="#be123c" stroke-width="2"/></svg>';
+  function letter(item, i) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "letter";
+    b.setAttribute("aria-label", "Open letter " + (i + 1));
+    b.setAttribute("aria-expanded", "false");
+    b.style.setProperty("--delay", (i * -1.1).toFixed(1) + "s");
+    b.style.setProperty("--pr", ([-6, 5, -3, 7][i % 4]) + "deg");
+    b.innerHTML = `<span class="letter__back">${ENVELOPE_BACK}</span>
+      <span class="letter__photo"><img src="${esc(item.src)}" alt="${esc(item.caption ? "Us in " + item.caption : "A photo of us")}" loading="lazy"><span class="letter__caption">${esc(item.caption || "")}${item.date ? ` <span class="letter__date">${esc(item.date)}</span>` : ""}</span></span>
+      <span class="letter__front">${ENVELOPE_FRONT}</span>
+      <span class="letter__flap">${ENVELOPE_FLAP}</span>`;
+    const set = (open) => {
+      if (open) {
+        // Nudge the polaroid sideways if it would poke off the edge of the screen.
+        const photo = b.querySelector(".letter__photo"), r = b.getBoundingClientRect();
+        const w = photo.offsetWidth * 1.32, center = r.left + r.width / 2; // tilted photo is wider on screen
+        const left = Math.min(Math.max(center - w / 2, 6), innerWidth - w - 6);
+        b.style.setProperty("--px", (left - (center - w / 2)).toFixed(0) + "px");
+      }
+      b.classList.toggle("open", open);
+      b.setAttribute("aria-expanded", String(open));
+      if (open) setTimeout(() => {
+        // After it has popped out, check where it really landed and slide it fully on screen.
+        if (!b.classList.contains("open")) return;
+        const pr = b.querySelector(".letter__photo").getBoundingClientRect();
+        let fix = 0;
+        if (pr.left < 6) fix = 6 - pr.left;
+        else if (pr.right > innerWidth - 6) fix = innerWidth - 6 - pr.right;
+        if (fix) b.style.setProperty("--px", (parseFloat(b.style.getPropertyValue("--px")) || 0) + Math.round(fix) + "px");
+      }, 850);
+    };
+    let closeTimer;
+    b.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { clearTimeout(closeTimer); set(true); } });
+    b.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") closeTimer = setTimeout(() => set(false), 350); });
+    b.addEventListener("click", (e) => {
+      if (e.pointerType === "mouse" || (e.detail && matchMedia("(hover: hover)").matches)) return; // hover already handles mice
+      const open = !b.classList.contains("open");
+      document.querySelectorAll(".letter.open").forEach((o) => { if (o !== b) { o.classList.remove("open"); o.setAttribute("aria-expanded", "false"); } });
+      set(open);
+    });
+    return b;
+  }
+  function addLetters(s) {
+    const items = C.letters || [];
+    if (!items.length) return;
+    const roomy = innerWidth >= 1100; // enough empty space beside the card
+    const box = document.createElement("div");
+    box.className = "mailbox " + (roomy ? "mailbox--float" : "mailbox--inline");
+    items.slice(0, 4).forEach((it, i) => box.append(letter(it, i)));
+    const hint = document.createElement("p");
+    hint.className = "mail-hint";
+    hint.textContent = roomy ? "Psst... hover over the letters 💌" : "Psst... tap the letters 💌";
+    const duo = $(".duo", s);
+    duo.after(hint);
+    if (roomy) $(".wrap").append(box);
+    else hint.after(box);
   }
 
   /* ------------------------------ the "No" button runs away a few times */

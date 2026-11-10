@@ -4,12 +4,12 @@ A little website for her birthday: a pastel pink page with hearts floating up th
 
 1. **Happy Birthday <3**, revealed top-down: the title, then one big party-hat cat, then the message and button while two more cats pop up around the page and keep hopping to new spots
 2. **"Will you let me spoil you on your birthday?"** Yes / No. The **No** button runs away 3 or 4 times ("Nope!", "Too slow!", "Catch me!") while Yes grows, then gives up; pressing it pops up *There is no "NOOOOOO". You must come with me!*
-3. **YAYYYYY! When shall we celebrate?** A calendar plus hour / minute / AM-PM
+3. **YAYYYYY! When shall we celebrate?** A calendar plus hour / minute / AM-PM. Tapping **Set our date!** sets off an explosion of about 200 roses
 4. **Dinner** picks
 5. **Activity** picks
 6. **Movie** picks
 7. **How excited are you?** slider
-8. **It's a date, my love!** The two dogs snuggled inside a drawn heart, her answers, plus buttons to send them to you
+8. **It's a date, my love!** The two dogs snuggled inside a drawn heart, four love letters that open into polaroids of you two (hover on a computer, tap on a phone), her answers, plus buttons to send them to you
 
 Each choice step also has a **Something else** option where she can type her own idea. Confetti, fade-in transitions and a step progress bar throughout.
 
@@ -29,6 +29,17 @@ Your cat, in a drawn party hat, shows up on the question screen, in the "There i
 - The last slide shows the two dogs (`photos/dog-white.jpg`, `dog-black.jpg`) in drawn crochet bucket hats: a pink piggy hat and a green froggy hat. Their positions are under `dogs` in `config.js`; `type` can be `pig` or `frog`.
 - The hat's position, tilt and size for each photo, and where the party horn comes out of the cat's mouth, are under `cats` in `config.js`, in percent of the photo. Nudge those numbers if a hat looks off.
 - `blowerCat` picks which cat does the confetti.
+
+## Love letters
+
+Four envelopes on the last slide open into polaroids with Sharpie-style captions. They're under `letters` in `config.js`: each has a photo (`photos/us-1.jpg` to `us-4.jpg`), a `caption` and a `date`.
+
+| Photo | Caption | Date |
+|---|---|---|
+| `us-1.jpg` | New York | 7/31/26 |
+| `us-2.jpg` | San Francisco | 11/1/26 |
+| `us-3.jpg` | Lotta Wine | 10/30/26 |
+| `us-4.jpg` | Atlanta | 4/26/26 |
 
 ## Add photos and GIFs
 

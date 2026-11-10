@@ -361,6 +361,66 @@ button, select, input { font: inherit; }
   50% { transform: translate(-50%, -86%) rotate(calc(var(--hr) + 3deg)); }
 }
 
+/* ---------- Love letters (open into polaroids) ---------- */
+.mail-hint { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--pink-500); animation: fadeUp .6s ease 2.2s both; }
+.mailbox--float { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+.mailbox--float .letter { position: absolute; pointer-events: auto; }
+.mailbox--float .letter:nth-child(1) { top: 16%; left: -170px; --r: -10deg; }
+.mailbox--float .letter:nth-child(2) { top: 28%; right: -170px; --r: 9deg; }
+.mailbox--float .letter:nth-child(3) { top: 54%; left: -150px; --r: 7deg; }
+.mailbox--float .letter:nth-child(4) { top: 66%; right: -150px; --r: -6deg; }
+.mailbox--inline { display: flex; justify-content: space-around; align-items: flex-end; gap: 8px; padding-top: 8px; margin: 0 0 24px; position: relative; z-index: 6; }
+.mailbox--inline .letter:nth-child(odd) { --r: -8deg; }
+.mailbox--inline .letter:nth-child(even) { --r: 7deg; }
+.letter {
+  position: relative; width: 86px; height: 62px; padding: 0; border: 0; background: none; cursor: pointer;
+  perspective: 500px; transform: rotate(var(--r, 0deg));
+  animation: letterIn .7s cubic-bezier(.34, 1.56, .64, 1) both, letterFloat 4s ease-in-out infinite;
+  animation-delay: 1.6s, var(--delay, 0s);
+  transition: transform .3s ease;
+}
+.mailbox .letter:nth-child(2) { animation-delay: 1.8s, var(--delay, 0s); }
+.mailbox .letter:nth-child(3) { animation-delay: 2s, var(--delay, 0s); }
+.mailbox .letter:nth-child(4) { animation-delay: 2.2s, var(--delay, 0s); }
+@keyframes letterIn { from { opacity: 0; transform: translateY(30px) rotate(var(--r, 0deg)) scale(.5); } to { opacity: 1; transform: rotate(var(--r, 0deg)); } }
+@keyframes letterFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+.letter:focus-visible { outline: 3px solid var(--pink-400); outline-offset: 6px; border-radius: 8px; }
+.letter.open { z-index: 20; }
+.letter__back, .letter__front, .letter__flap { position: absolute; inset: 0; display: block; }
+.letter__svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.letter__back { z-index: 1; }
+.letter__front { z-index: 3; filter: drop-shadow(0 6px 8px rgba(190, 24, 93, .18)); }
+.letter__flap { z-index: 4; transform-origin: 50% 3%; transition: transform .4s ease, z-index 0s .2s; }
+.letter.open .letter__flap { transform: rotateX(180deg); z-index: 0; transition: transform .4s ease, z-index 0s .15s; }
+.letter__photo {
+  position: absolute; left: 50%; bottom: 10px; z-index: 2; display: block;
+  width: 168px; padding: 9px 9px 0; background: #fffdf9; border-radius: 3px;
+  box-shadow: 0 16px 30px -10px rgba(74, 29, 51, .45), 0 0 0 1px rgba(74, 29, 51, .06);
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) translateY(10px) scale(.4); opacity: 0;
+  transition: transform .5s cubic-bezier(.34, 1.4, .64, 1), opacity .25s ease, z-index 0s 0s;
+  pointer-events: none;
+}
+.letter__photo img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 1px; }
+.letter__caption {
+  display: block; min-height: 40px; padding: 8px 2px 9px; text-align: center;
+  font: 400 15px/1.15 "Permanent Marker", "Marker Felt", "Comic Sans MS", cursive;
+  color: #1c1719; letter-spacing: .01em; transform: rotate(-2deg);
+  text-shadow: 0 0 .4px rgba(28, 23, 25, .6);
+}
+.letter__date { display: inline-block; font-size: 12px; opacity: .85; margin-left: 2px; }
+.letter.open .letter__photo {
+  opacity: 1; z-index: 5;
+  transform: translateX(calc(-50% + var(--px, 0px))) translateY(-34%) rotate(var(--pr, 0deg)) scale(1);
+  transition: transform .6s cubic-bezier(.34, 1.4, .64, 1) .2s, opacity .25s ease .2s, z-index 0s .45s;
+}
+@media (max-width: 520px) {
+  .letter { width: 70px; height: 51px; }
+  .letter__photo { width: 140px; padding: 7px 7px 0; }
+  .letter__caption { font-size: 13px; min-height: 34px; padding: 6px 1px 7px; }
+  .letter__date { font-size: 10.5px; }
+}
+
 /* ---------- Intro: top-down reveal ---------- */
 .step .seq { animation: seqIn .75s cubic-bezier(.34, 1.3, .64, 1) both; animation-delay: var(--at, 0s); }
 @keyframes seqIn { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: none; } }
