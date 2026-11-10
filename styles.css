@@ -171,6 +171,7 @@ button, select, input { font: inherit; }
 /* ---------- Choice tiles ---------- */
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
 @media (min-width: 640px) { .grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .grid--3 { grid-template-columns: minmax(0, 1fr); } }
 .tile {
   cursor: pointer; padding: 16px; border-radius: 12px; font-weight: 600;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -186,6 +187,19 @@ button, select, input { font: inherit; }
 .tile span { font-size: 14px; overflow-wrap: anywhere; }
 .tile[aria-pressed="true"] { background: var(--grad); color: var(--white); border-color: transparent; box-shadow: 0 10px 15px -3px rgba(249, 168, 212, .55); }
 .tile--wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; }
+.choice { display: flex; flex-direction: column; gap: 8px; min-width: 0; animation: fadeUp .45s ease both; animation-delay: calc(var(--i, 0) * 50ms + 100ms); }
+.choice .tile { animation: none; justify-content: center; }
+.tile small { font-size: 12px; font-weight: 500; opacity: .75; margin-top: -6px; }
+.tile-links { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.tile-links a {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; color: var(--pink-600); text-decoration: none;
+  background: rgba(255, 255, 255, .8); border: 1px solid var(--pink-200);
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.tile-links a:hover { background: var(--pink-100); border-color: var(--pink-300); transform: translateY(-1px); }
+.tile-links a:focus-visible { outline: 2px solid var(--pink-400); outline-offset: 2px; }
+.tile-links svg { width: 13px; height: 13px; }
 .other { margin: -16px 0 32px; }
 .input {
   width: 100%; max-width: 420px; padding: 12px 18px; border-radius: 999px; text-align: center;

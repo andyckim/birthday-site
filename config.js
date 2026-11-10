@@ -52,31 +52,39 @@ window.BIRTHDAY = {
   blowerCat: 1,   // which cat (1-3) pops up to blow confetti
 
   // ---- The choices -------------------------------------------------------
+  // Each step also gets a "Something else" option where she can type her own idea.
   // icon can be: utensils, coffee, fish, flame, wine, home, spa, palette, sun,
   // gamepad, museum, star, film, heart, popcorn
+  // links show as small buttons under the option and open in a new tab.
   dinner: [
-    { name: "Italian",         icon: "utensils" },
-    { name: "Sushi",           icon: "fish" },
-    { name: "Steakhouse",      icon: "flame" },
-    { name: "Tapas & Wine",    icon: "wine" },
-    { name: "Homemade by me",  icon: "home" },
-    { name: "Birthday Brunch", icon: "coffee" }
+    { name: "La Cantine", sub: "Bushwick", icon: "utensils",
+      links: [{ label: "Google reviews", url: "https://www.google.com/maps/search/?api=1&query=La+Cantine+60+Saint+Nicholas+Ave+Brooklyn+NY" }] },
+    { name: "Bonnie's", sub: "Williamsburg", icon: "flame",
+      links: [{ label: "Google reviews", url: "https://www.google.com/maps/search/?api=1&query=Bonnie%27s+Williamsburg+Brooklyn+NY" }] },
+    { name: "Briscola Trattoria", sub: "Crown Heights", icon: "wine",
+      links: [{ label: "Google reviews", url: "https://www.google.com/maps/search/?api=1&query=Briscola+Trattoria+Crown+Heights+Brooklyn+NY" }] },
+    { name: "Homemade by me", sub: "Dinner at home", icon: "home" }
   ],
   activity: [
-    { name: "Spa Day",          icon: "spa" },
-    { name: "Pottery Class",    icon: "palette" },
-    { name: "Sunset Picnic",    icon: "sun" },
-    { name: "Arcade & Bowling", icon: "gamepad" },
-    { name: "Museum Date",      icon: "museum" },
-    { name: "Stargazing",       icon: "star" }
+    { name: "Pottery Class",   icon: "palette" },
+    { name: "Couples Massage", icon: "heart" },
+    { name: "Korean Spa",      icon: "spa" }
   ],
   movies: [
-    "The Notebook",
-    "La La Land",
-    "Pride and Prejudice",
-    "About Time",
-    "Crazy Rich Asians",
-    "Past Lives",
-    "10 Things I Hate About You"
+    { name: "Harry Potter and the Chamber of Secrets", sub: "2002", icon: "film",
+      links: [
+        { label: "Trailer", url: "https://www.youtube.com/results?search_query=Harry+Potter+and+the+Chamber+of+Secrets+official+trailer" },
+        { label: "About",   url: "https://en.wikipedia.org/wiki/Harry_Potter_and_the_Chamber_of_Secrets_(film)" }
+      ] },
+    { name: "Being John Malkovich", sub: "1999", icon: "film",
+      links: [
+        { label: "Trailer", url: "https://www.youtube.com/results?search_query=Being+John+Malkovich+official+trailer" },
+        { label: "About",   url: "https://en.wikipedia.org/wiki/Being_John_Malkovich" }
+      ] },
+    { name: "Big World", sub: "2024", icon: "film",
+      links: [
+        { label: "Trailer", url: "https://www.youtube.com/results?search_query=Big+World+2024+%E5%B0%8F%E5%B0%8F%E7%9A%84%E6%88%91+trailer" },
+        { label: "About",   url: "https://en.wikipedia.org/wiki/Big_World_(film)" }
+      ] }
   ]
 };

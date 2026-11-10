@@ -51,7 +51,7 @@ Everything is in `config.js`:
 
 - `herName`, `introMessage`
 - `birthday`: her birthday as `YYYY-MM-DD`. The calendar opens on that month and puts a little heart on the day.
-- `dinner`, `activity`, `movies`: the choices. Add, remove or rename freely. Icons available: utensils, coffee, fish, flame, wine, home, spa, palette, sun, gamepad, museum, star, film, heart, popcorn.
+- `dinner`, `activity`, `movies`: the choices. Each option has a `name`, an optional `sub` line (neighborhood, year), an `icon`, and optional `links` that show as small buttons under it (Google reviews for the restaurants, Trailer and About for the movies). Add, remove or rename freely. Icons available: utensils, coffee, fish, flame, wine, home, spa, palette, sun, gamepad, museum, star, film, heart, popcorn.
 
 ## How you see her answers
 

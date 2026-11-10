@@ -179,7 +179,8 @@
   };
 
   /* A choice step: tiles + "Something else" + next button */
-  function choiceStep({ n, key, title, items, nextLabel, cols3 }) {
+  function choiceStep({ n, key, title, items, nextLabel }) {
+    const cols3 = items.length % 3 === 0;
     const s = el(`<h2 class="title">${title}</h2><div class="grid ${cols3 ? "grid--3" : ""}"></div><div class="other" hidden><input class="input" id="${key}-other" maxlength="120" placeholder="Tell me what you have in mind"></div><button class="btn btn--grad" type="button" disabled>${nextLabel}</button>`);
     s.prepend(progress(n));
     const grid = $(".grid", s), otherBox = $(".other", s), other = $("input", otherBox), next = $(".btn--grad", s);
@@ -192,11 +193,22 @@
       next.disabled = !answers[key];
     };
     items.forEach((it, i) => {
+      const cell = document.createElement("div");
+      cell.className = "choice";
+      cell.style.setProperty("--i", i);
       const b = document.createElement("button");
-      b.type = "button"; b.className = "tile"; b.dataset.v = it.name; b.style.setProperty("--i", i);
-      b.innerHTML = `${icon(it.icon)}<span>${esc(it.name)}</span>`;
+      b.type = "button"; b.className = "tile"; b.dataset.v = it.name;
+      b.innerHTML = `${icon(it.icon)}<span>${esc(it.name)}</span>${it.sub ? `<small>${esc(it.sub)}</small>` : ""}`;
       b.addEventListener("click", () => { otherBox.dataset.on = ""; answers[key] = it.name; save(); paint(); });
-      grid.append(b);
+      cell.append(b);
+      if (it.links && it.links.length) {
+        const links = document.createElement("div");
+        links.className = "tile-links";
+        links.innerHTML = it.links.map((l) =>
+          `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${icon(/trailer/i.test(l.label) ? "film" : /review/i.test(l.label) ? "star" : "right")}${esc(l.label)}</a>`).join("");
+        cell.append(links);
+      }
+      grid.append(cell);
     });
     const ob = document.createElement("button");
     ob.type = "button"; ob.className = "tile tile--wide"; ob.dataset.v = "__other"; ob.style.setProperty("--i", items.length);
@@ -261,13 +273,13 @@
     },
 
     // 3. Dinner
-    () => choiceStep({ n: 2, key: "dinner", title: "What shall we feast on, my dear?", items: C.dinner, nextLabel: "Looks delicious! 🍽️", cols3: true }),
+    () => choiceStep({ n: 2, key: "dinner", title: "What shall we feast on, my dear?", items: C.dinner, nextLabel: "Looks delicious! 🍽️" }),
 
     // 4. Activity
-    () => choiceStep({ n: 3, key: "activity", title: "What shall we do together?", items: C.activity, nextLabel: "Sounds so fun! ✨", cols3: true }),
+    () => choiceStep({ n: 3, key: "activity", title: "What shall we do together?", items: C.activity, nextLabel: "Sounds so fun! ✨" }),
 
     // 5. Movie
-    () => choiceStep({ n: 4, key: "movie", title: "What shall we watch together?", items: C.movies.map((m) => ({ name: m, icon: "film" })), nextLabel: "Popcorn ready! 🍿" }),
+    () => choiceStep({ n: 4, key: "movie", title: "What shall we watch together?", items: C.movies.map((m) => typeof m === "string" ? { name: m, icon: "film" } : m), nextLabel: "Popcorn ready! 🍿" }),
 
     // 6. Excitement
     () => {
