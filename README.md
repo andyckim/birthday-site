@@ -1,91 +1,89 @@
 # Birthday Planner
 
-A little website for her birthday. She opens it, taps a heart-shaped wax seal, gets a "Happy Birthday" intro, is asked whether she'll let you plan her day (the **No** button runs away, and catching it only gets her told that "No" is not an available answer), then picks:
+A little website for her birthday: a pastel pink page with hearts floating up the background and one soft card that walks her through:
 
-1. **Dinner**
-2. **An activity**
-3. **A movie** (a vibe, an optional title, and theater vs. home)
+1. **Happy Birthday, my love!** with three photos of you two
+2. **"Will you let me spoil you on your birthday?"** Yes / No. Pressing **No** pops up *There is no "NOOOOOO". You must come with me!*
+3. **YAYYYYY! When shall we celebrate?** A calendar plus hour / minute / AM-PM
+4. **Dinner** picks
+5. **Activity** picks
+6. **Movie** picks
+7. **How excited are you?** slider
+8. **It's a date, my love!** Her answers, plus buttons to send them to you
 
-…plus an excitement meter and an optional wish list. The last screen shows her picks as a ticket and gives her buttons to send them to you.
+Each choice step also has a **Something else** option where she can type her own idea. Confetti, fade-in transitions and a step progress bar throughout.
 
-No build step, no database, no dependencies. Plain HTML, CSS and JavaScript.
+No build step, no database. Plain HTML, CSS and JavaScript.
 
-## Test it on your computer
+## Test it
 
-Double-click `index.html`. That's it.
+Double-click `index.html`, or from this folder run `python3 -m http.server` and open http://localhost:8000.
 
-(Or, from this folder, run `python3 -m http.server` and open http://localhost:8000.)
+Her answers are remembered in her browser, so a reload won't lose them.
 
-Her progress is remembered in her browser, so if she reloads, her choices are still there.
+## Add photos and GIFs
 
-## Add your photos
+Put files in `photos/` with these names, or open `config.js` and change the names under `media` to match yours:
 
-1. Put your pictures in the `photos/` folder.
-2. Name them to match the slots below, **or** open `config.js` and change the file names to match yours.
-
-| Where it shows up | File name(s) |
+| Spot | File |
 |---|---|
-| Three polaroids on the "Happy Birthday" screen | `intro-1.jpg`, `intro-2.jpg`, `intro-3.jpg` |
-| Dinner page | `dinner.jpg` |
-| Activity page | `activity.jpg` |
-| Movie page | `movie.jpg` |
-| Scrolling film strip ("anything else?" page) | `gallery-1.jpg` … `gallery-8.jpg` (add as many as you want in `config.js`) |
-| Fan of photos on the final page | `finale-1.jpg`, `finale-2.jpg`, `finale-3.jpg` |
+| Happy Birthday screen (3 photos of you two) | `us-1.jpg`, `us-2.jpg`, `us-3.jpg` |
+| "Will you let me spoil you?" | `ask.gif` |
+| The "There is no NOOOOO" pop-up | `no.gif` |
+| Calendar step | `date.gif` |
+| "It's a date, my love!" | `final.gif` |
 
-Any slot without a photo shows a dashed "Add photo" frame that names the file it's waiting for, so open the site and you'll see exactly where each one goes. `.png`, `.jpeg`, `.webp` and `.gif` work too; just use the right extension in `config.js`. Captions (the handwritten text under each polaroid) are also set in `config.js`. Photos are cropped to a 4:5 portrait polaroid, so portrait shots look best.
+Any of these can be a photo or a GIF (`.jpg`, `.png`, `.gif`, `.webp`); just make the extension in `config.js` match. A spot that's still empty shows a little drawn mochi, so the page never looks broken. When you open the site from your own computer, each empty spot also shows the file name it's waiting for.
 
-**Tip:** phone photos are huge. Resizing them to about 1200px on the long side keeps the site fast.
+Tip: shrink phone photos to about 1200px on the long side so the site loads fast.
 
-## Edit the words and options
+## Edit words and options
 
-Everything lives in `config.js`:
+Everything is in `config.js`:
 
-- `herName`: shown under "Happy Birthday"
-- `introMessage`, `finaleMessage`: your notes to her
-- `steps`: the dinner, activity and movie options. Add, remove or reword them. Each step also gets a "Something else" card where she can type her own idea.
+- `herName`, `introMessage`
+- `birthday`: her birthday as `YYYY-MM-DD`. The calendar opens on that month and puts a little heart on the day.
+- `dinner`, `activity`, `movies`: the choices. Add, remove or rename freely. Icons available: utensils, coffee, fish, flame, wine, home, spa, palette, sun, gamepad, museum, star, film, heart, popcorn.
 
-## How you see what she picked
+## How you see her answers
 
-There's no database. Her answers reach you one of these ways (set them in `config.js`):
+No database. Pick one or more in `config.js`:
 
-| Option | Setup | How it works |
+| Option | Setup | What happens |
 |---|---|---|
-| **Text** | `contact.phone: "4075551234"` | A "Text me your picks" button opens her Messages app with the summary pre-written. She hits send. |
-| **Email** | `contact.email: "you@example.com"` | Same idea with her email app. |
-| **Automatic (recommended once it's online)** | Make a free form at [formspree.io](https://formspree.io), paste its URL into `formspreeEndpoint` | Her picks are emailed to you the moment she reaches the last screen. She doesn't have to press anything. |
-| **Copy** | Always on | Copies the summary so she can paste it anywhere. |
+| **Automatic email (recommended once it's online)** | Make a free form at [formspree.io](https://formspree.io), paste its URL into `formspreeEndpoint` | Her answers are emailed to you the moment she reaches the last screen |
+| **Text** | `contact.phone` | A "Text me your answers" button opens her Messages app with the answers pre-written |
+| **Email** | `contact.email` | Same, with her email app |
+| **Copy** | Always on | Copies the answers so she can paste them anywhere |
 
-The message you get looks like:
+What you get:
 
 ```
-Birthday picks from My Love
+my love's birthday answers
 
-Dinner: Sushi Omakase
+Date: Sat, Nov 21 at 8:00 PM
+Dinner: Sushi
 Activity: Kayaking with manatees
-Movie: Rom-Com ("Notting Hill" · Cozy at home)
-Excitement: 5/5, Can't sit still
-Wishes: Chocolate cake
+Movie: La La Land
+Excitement: 100/100
 ```
 
-Formspree only works when the site is served from a real web address (not a double-clicked file), so test it after you put the site online.
+Formspree only works once the site is at a real web address, not a double-clicked file.
 
-## Put it online (free)
+## Put it online (GitHub Pages)
 
-Any static host works. Easiest options:
-
-- **GitHub Pages:** push this repo to GitHub, then *Settings → Pages → Deploy from branch → main / root*. You'll get a link like `https://yourname.github.io/birthday-site/`.
-- **Netlify Drop:** drag this whole folder onto https://app.netlify.com/drop.
-
-Heads-up: on GitHub Pages a public repo means the photos are public to anyone with the link. Use a private repo with a paid plan, or Netlify, if that matters to you.
+Repo **Settings → Pages → Deploy from a branch → `main` / `(root)` → Save**. A minute later it's live at `https://andyckim.github.io/birthday-site/`. Pages on a private repo needs a paid GitHub plan; a public repo means anyone with the link can see the photos.
 
 ## Files
 
 ```
-index.html   page structure (scenes)
-styles.css   look and animations
-app.js       behavior: transitions, the runaway No button, mascot, sending picks
-config.js    ← everything you edit
-photos/      ← drop your pictures here
+index.html   page shell
+styles.css   pastel look, floating hearts, transitions
+app.js       the steps, calendar, "No" pop-up, sending answers
+config.js    <- everything you edit
+photos/      <- your photos and GIFs
 ```
 
-The little mochi mascot is drawn in code (`mascotSVG` in `app.js`), so there are no image files to manage for it. Animations respect the "reduce motion" setting on her phone.
+## Credits
+
+The flow and visual style are adapted from [datebyte](https://github.com/0xneobyte/datebyte) by Tharushka Dinujaya, used under the MIT License (see `LICENSE`).

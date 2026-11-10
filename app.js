@@ -1,550 +1,366 @@
-/* Birthday planner. You shouldn't need to edit this file; see config.js. */
+/* Birthday planner. You shouldn't need to edit this file; see config.js.
+   Flow and look adapted from datebyte by Tharushka Dinujaya (MIT License). */
 (() => {
   "use strict";
   const C = window.BIRTHDAY;
   const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const el = (tag, cls, html) => {
-    const n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (html != null) n.innerHTML = html;
-    return n;
-  };
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
-  const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6 11-11-1.4-1.4z"/></svg>';
+  const showHints = location.protocol === "file:" || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 
-  /* ---------------------------------------------------------------- state */
-  const STORE = "bday-picks-v1";
-  const picks = { excite: 3, note: "" };
-  C.steps.forEach((s) => { picks[s.id] = null; picks[s.id + "Other"] = ""; });
-  picks.movieTitle = ""; picks.movieWhere = null;
-  try { Object.assign(picks, JSON.parse(localStorage.getItem(STORE) || "{}")); } catch (e) {}
-  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(picks)); } catch (e) {} };
+  /* ------------------------------------------------------------- icons */
+  const ICONS = {
+    utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+    coffee: '<path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/>',
+    fish: '<path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/>',
+    flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    wine: '<path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/>',
+    home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    spa: '<circle cx="12" cy="12" r="3"/><path d="M12 9a3 3 0 1 1 3-3 3 3 0 1 1-3 3"/><path d="M12 9a3 3 0 1 0-3-3 3 3 0 1 0 3 3"/><path d="M12 15a3 3 0 1 1 3 3 3 3 0 1 1-3-3"/><path d="M12 15a3 3 0 1 0-3 3 3 3 0 1 0 3-3"/>',
+    palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+    gamepad: '<path d="M6 12h4"/><path d="M8 10v4"/><path d="M15 13h.01"/><path d="M18 11h.01"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59C2.6 9.42 2 14.46 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.41.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.6-6.58-.69-7.26A4 4 0 0 0 17.32 5z"/>',
+    museum: '<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M12 2 20 7H4z"/>',
+    star: '<path d="M11.53 2.3a.53.53 0 0 1 .95 0l2.31 4.68a2.12 2.12 0 0 0 1.6 1.16l5.16.76a.53.53 0 0 1 .3.9l-3.74 3.64a2.12 2.12 0 0 0-.61 1.88l.88 5.14a.53.53 0 0 1-.77.56l-4.62-2.43a2.12 2.12 0 0 0-1.97 0L6.4 21.01a.53.53 0 0 1-.77-.56l.88-5.14a2.12 2.12 0 0 0-.61-1.88L2.16 9.8a.53.53 0 0 1 .3-.9l5.16-.76a2.12 2.12 0 0 0 1.6-1.16z"/>',
+    film: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    popcorn: '<path d="M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"/><path d="M10 22 9 8"/><path d="m14 22 1-14"/><path d="M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    left: '<path d="m15 18-6-6 6-6"/>',
+    right: '<path d="m9 18 6-6-6-6"/>'
+  };
+  const icon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.heart}</svg>`;
+  const HEART_FILL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
 
-  /* --------------------------------------------------------------- mascot */
-  // An original little mochi character with a party hat. Moods: happy, pleading, shocked, sad, love.
-  const heartPath = (x, y, s, cls = "m-heart") =>
-    `<path class="${cls}" transform="translate(${x} ${y}) scale(${s})" d="M0 4C-6 0-6-5 0-2C6-5 6 0 0 4Z"/>`;
-  function mascotSVG(mood) {
-    let eyes = "", mouth = "", extra = "";
-    switch (mood) {
-      case "pleading":
-        eyes = `<g class="m-eye-blink"><circle class="m-ink" cx="46" cy="70" r="7"/><circle class="m-shine" cx="48.5" cy="67" r="2.6"/><circle class="m-shine" cx="44" cy="73" r="1.2"/></g>
-                <g class="m-eye-blink"><circle class="m-ink" cx="74" cy="70" r="7"/><circle class="m-shine" cx="76.5" cy="67" r="2.6"/><circle class="m-shine" cx="72" cy="73" r="1.2"/></g>`;
-        mouth = `<path class="m-line" d="M55 86 q2.5-3 5 0 q2.5 3 5 0"/>`;
-        break;
-      case "shocked":
-        eyes = `<circle class="m-ink" cx="46" cy="69" r="5"/><circle class="m-shine" cx="47.5" cy="67.5" r="1.6"/>
-                <circle class="m-ink" cx="74" cy="69" r="5"/><circle class="m-shine" cx="75.5" cy="67.5" r="1.6"/>
-                <path class="m-line" d="M38 58 l10 3 M82 58 l-10 3"/>`;
-        mouth = `<ellipse class="m-ink" cx="60" cy="86" rx="5" ry="6.5"/>`;
-        extra = `<path class="m-tear" d="M92 52 q5 8 0 11 q-5-3 0-11z"/>`;
-        break;
-      case "sad":
-        eyes = `<path class="m-line" d="M40 68 q6 5 12 0 M68 68 q6 5 12 0"/>`;
-        mouth = `<path class="m-line" d="M53 88 q7-7 14 0"/>`;
-        extra = `<path class="m-tear" d="M43 75 q4 7 0 10 q-4-3 0-10z"/>`;
-        break;
-      case "love":
-        eyes = heartPath(46, 69, 1.5) + heartPath(74, 69, 1.5);
-        mouth = `<path class="m-ink" d="M52 80 q8 11 16 0 z"/>`;
-        extra = heartPath(22, 30, 1.2, "m-heart m-float") + heartPath(98, 26, 1, "m-heart m-float") + heartPath(104, 52, .9, "m-heart m-float");
-        break;
-      default: // happy
-        eyes = `<path class="m-line" d="M40 71 q6-8 12 0 M68 71 q6-8 12 0"/>`;
-        mouth = `<path class="m-ink" d="M53 79 q7 9 14 0 z"/>`;
+  /* ---------------------------------------------------- background hearts */
+  const HEARTS = [
+    [15, 0, .6, 12, "#f9a8d4"], [25, 1, .7, 14, "#fda4af"], [35, 2, .5, 16, "rgba(251,207,232,.8)"],
+    [45, .5, .8, 18, "rgba(254,205,211,.8)"], [55, 1.5, .6, 13, "#f9a8d4"], [65, 2.5, .7, 15, "#fda4af"],
+    [75, .3, .5, 17, "rgba(251,207,232,.8)"], [85, 1.8, .75, 14, "rgba(254,205,211,.8)"],
+    [10, 3, .6, 16, "#f9a8d4"], [90, .8, .65, 12, "#fda4af"]
+  ];
+  $("#hearts").innerHTML = HEARTS.map(([l, d, s, t, c]) =>
+    `<span style="left:${l}%;--s:${s};animation-duration:${t}s;animation-delay:${d}s;color:${c}">${HEART_FILL}</span>`).join("");
+  const SPARKS = [[12,15,5,0],[25,35,6,.5],[38,22,4,1],[52,45,7,1.5],[68,18,5,2],[81,40,6,.3],[15,65,4,.8],[45,72,5,1.2],[72,68,6,1.8],[88,25,4,2.2],[35,8,5,.6],[62,85,7,1.4],[92,55,5,.9],[8,48,6,1.6],[78,12,4,2],[28,80,5,.4],[55,28,6,1.1],[18,92,4,1.9]];
+  $("#sparkles").innerHTML = SPARKS.map(([l, t, s, d]) => `<i style="left:${l}%;top:${t}%;width:${s}px;height:${s}px;animation-delay:${d}s"></i>`).join("");
+
+  /* --------------------------------------------------------- mascot */
+  // Drawn fallback for empty photo/GIF slots: an original little mochi in a party hat.
+  const heartPath = (x, y, s, cls = "m-heart") => `<path class="${cls}" transform="translate(${x} ${y}) scale(${s})" d="M0 4C-6 0-6-5 0-2C6-5 6 0 0 4Z"/>`;
+  function mascot(mood) {
+    let eyes, mouth, extra = "";
+    if (mood === "pleading") {
+      eyes = `<circle class="m-ink" cx="46" cy="70" r="7"/><circle class="m-shine" cx="48.5" cy="67" r="2.6"/><circle class="m-ink" cx="74" cy="70" r="7"/><circle class="m-shine" cx="76.5" cy="67" r="2.6"/>`;
+      mouth = `<path class="m-line" d="M55 86 q2.5-3 5 0 q2.5 3 5 0"/>`;
+    } else if (mood === "pouty") {
+      eyes = `<path class="m-line" d="M40 66 l10 4 M80 66 l-10 4"/><circle class="m-ink" cx="46" cy="73" r="4"/><circle class="m-ink" cx="74" cy="73" r="4"/>`;
+      mouth = `<path class="m-line" d="M53 88 q7-7 14 0"/>`;
+      extra = `<path class="m-tear" d="M92 52 q5 8 0 11 q-5-3 0-11z"/>`;
+    } else if (mood === "love") {
+      eyes = heartPath(46, 69, 1.5) + heartPath(74, 69, 1.5);
+      mouth = `<path class="m-ink" d="M52 80 q8 11 16 0 z"/>`;
+      extra = heartPath(22, 30, 1.2, "m-heart m-float") + heartPath(98, 26, 1, "m-heart m-float") + heartPath(104, 52, .9, "m-heart m-float");
+    } else {
+      eyes = `<path class="m-line" d="M40 71 q6-8 12 0 M68 71 q6-8 12 0"/>`;
+      mouth = `<path class="m-ink" d="M53 79 q7 9 14 0 z"/>`;
     }
-    return `<svg class="mascot mascot--${mood}" viewBox="0 0 120 120" role="img" aria-label="A little mochi friend looking ${mood}">
-      <ellipse cx="60" cy="112" rx="34" ry="5" fill="#3a1e2a" opacity=".12"/>
+    return `<svg class="mascot" viewBox="0 0 120 120" role="img" aria-label="A cute little mochi">
+      <ellipse cx="60" cy="112" rx="34" ry="5" fill="#be185d" opacity=".1"/>
       <ellipse class="m-body" cx="40" cy="106" rx="9" ry="6"/><ellipse class="m-body" cx="80" cy="106" rx="9" ry="6"/>
       <path class="m-body" d="M60 34c27 0 46 20 46 44 0 20-18 31-46 31S14 98 14 78c0-24 19-44 46-44z"/>
-      <ellipse class="m-body" cx="16" cy="82" rx="7" ry="10" transform="rotate(25 16 82)"/>
-      <ellipse class="m-body" cx="104" cy="82" rx="7" ry="10" transform="rotate(-25 104 82)"/>
-      <path class="m-hat" d="M46 40 L74 36 L63 4 Z"/>
-      <circle class="m-dot" cx="60" cy="28" r="2.4"/><circle class="m-dot" cx="65" cy="18" r="2"/><circle class="m-dot" cx="55" cy="35" r="1.8"/>
-      <circle class="m-pom" cx="63" cy="5" r="5"/>
+      <ellipse class="m-body" cx="16" cy="82" rx="7" ry="10" transform="rotate(25 16 82)"/><ellipse class="m-body" cx="104" cy="82" rx="7" ry="10" transform="rotate(-25 104 82)"/>
+      <path class="m-hat" d="M46 40 L74 36 L63 4 Z"/><circle class="m-dot" cx="60" cy="28" r="2.4"/><circle class="m-dot" cx="65" cy="18" r="2"/><circle class="m-pom" cx="63" cy="5" r="5"/>
       <ellipse class="m-cheek" cx="34" cy="80" rx="7" ry="4.5"/><ellipse class="m-cheek" cx="86" cy="80" rx="7" ry="4.5"/>
-      ${eyes}${mouth}${extra}
-    </svg>`;
+      ${eyes}${mouth}${extra}</svg>`;
   }
-  function setMascot(slot, mood) {
-    if (!slot || slot.dataset.current === mood) return;
-    slot.dataset.current = mood;
-    slot.innerHTML = `<div class="m-wrap">${mascotSVG(mood)}</div>`;
-    slot.classList.remove("pop"); void slot.offsetWidth; slot.classList.add("pop");
-  }
-  $$("[data-mascot]").forEach((s) => setMascot(s, s.dataset.mascot));
 
-  /* --------------------------------------------------------------- photos */
-  function photo(p, tilt = 0, extraCls = "") {
-    const item = typeof p === "string" ? { src: p } : p || {};
-    const f = el("figure", ("polaroid " + extraCls).trim());
-    f.style.setProperty("--tilt", tilt + "deg");
-    const frame = el("div", "polaroid__img");
-    const img = new Image();
-    img.alt = item.caption || "A photo of us";
-    img.decoding = "async";
-    img.onerror = () => {
-      frame.classList.add("is-empty");
-      frame.innerHTML = `<span>${HEART}<b>Add photo</b><code>${esc(item.src || "photos/…")}</code></span>`;
+  /* --------------------------------------------- photo / GIF slots */
+  function media(src, mood, extraClass = "") {
+    const box = document.createElement("div");
+    box.className = ("media pop " + extraClass).trim();
+    const fallback = () => {
+      box.classList.add("is-mascot");
+      box.innerHTML = mascot(mood) + (showHints && src ? `<span class="hint">add ${esc(src)}</span>` : "");
     };
-    img.src = item.src || "";
-    frame.append(img);
-    f.append(frame);
-    if (item.caption !== undefined) f.append(el("figcaption", null, esc(item.caption || "")));
-    return f;
+    if (!src) { fallback(); return box; }
+    const img = new Image();
+    img.alt = "Us";
+    img.onerror = fallback;
+    img.src = src;
+    box.append(img);
+    return box;
   }
 
-  /* ---------------------------------------------------------------- intro */
-  const hbd = $("#hbd");
-  let i = 0;
-  hbd.innerHTML = "Happy Birthday".split("").map((ch) =>
-    ch === " " ? '<span class="space"> </span>' : `<span class="letter" style="--i:${i++}">${esc(ch)}</span>`
-  ).join("");
-  $("#her-name").textContent = C.herName;
-  $("#intro-message").textContent = C.introMessage;
-  $("#finale-message").textContent = C.finaleMessage;
-  const introRow = $("#intro-photos");
-  const introTilts = [-7, 3, 8], introFx = ["-60px", "0px", "60px"];
-  (C.photos.intro || []).slice(0, 3).forEach((p, n) => {
-    const f = photo(p, introTilts[n % 3], "fly");
-    f.style.setProperty("--d", n);
-    f.style.setProperty("--fx", introFx[n % 3]);
-    introRow.append(f);
-  });
+  /* ---------------------------------------------------------- state */
+  const STORE = "birthdayAnswers";
+  const answers = { date: null, hour: "7", minute: "00", ampm: "PM", dinner: "", activity: "", movie: "", excitement: 50 };
+  try { Object.assign(answers, JSON.parse(localStorage.getItem(STORE) || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(answers)); } catch (e) {} };
+  const time = () => `${answers.hour}:${answers.minute} ${answers.ampm}`;
+  const parseISO = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const fmtDate = (s) => s ? parseISO(s).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
 
-  /* ---------------------------------------------------------------- steps */
-  const cheers = {
-    dinner: ["Ooh, yummy choice", "My tummy approves", "Table for two!", "Great taste, as always"],
-    activity: ["Ahh I'm so excited", "Best idea ever", "Let's gooo", "This is going to be fun"],
-    movie: ["Popcorn secured", "Good pick!", "I'll bring snacks", "Movie night, yay"]
+  const confetti = () => { if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); };
+
+  /* ------------------------------------------------------- stepping */
+  const stage = $("#stage");
+  const TOTAL = 6; // numbered steps after the question
+  let step = 0;
+  function go(n) {
+    const old = stage.firstElementChild;
+    const show = () => {
+      step = n;
+      stage.innerHTML = "";
+      stage.append(STEPS[n]());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    if (old) { old.classList.add("out"); setTimeout(show, 300); } else show();
+  }
+  const el = (html) => { const d = document.createElement("div"); d.className = "step"; d.innerHTML = html; return d; };
+  const progress = (n) => {
+    const pct = Math.round((n / TOTAL) * 100);
+    const w = el("");
+    w.className = "progress";
+    w.innerHTML = `<div class="progress__row"><span>Step ${n} of ${TOTAL}</span><span>${pct}%</span></div><div class="progress__track"><div class="progress__fill"></div></div>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { $(".progress__fill", w).style.width = pct + "%"; }));
+    return w;
   };
-  const stepsHost = $("#steps");
-  const order = ["intro", "ask", ...C.steps.map((s) => s.id), "note", "finale"];
 
-  C.steps.forEach((step, idx) => {
-    const prev = idx === 0 ? "ask" : C.steps[idx - 1].id;
-    const next = C.steps[idx + 1] ? C.steps[idx + 1].id : "note";
-    const sec = el("section", "scene");
-    sec.id = step.id;
-    sec.hidden = true;
-    const bars = C.steps.map((_, k) => `<i class="${k < idx ? "done" : k === idx ? "on" : ""}"></i>`).join("");
-    sec.innerHTML = `
-      <div class="step">
-        <div class="step__top">
-          <header class="step__head">
-            <div class="progress rise" style="--d:0" aria-label="Step ${idx + 1} of ${C.steps.length}">${bars}<span>${esc(step.label)} · ${idx + 1} of ${C.steps.length}</span></div>
-            <h2 class="display rise" style="--d:1">${esc(step.title)}</h2>
-            <p class="sub rise" style="--d:2">${esc(step.subtitle)}</p>
-          </header>
-          <div class="step__photo-slot"></div>
-        </div>
-        <div class="options" role="group" aria-label="${esc(step.label)} options"></div>
-        <div class="extras-slot"></div>
-        <nav class="step__nav rise" style="--d:4">
-          <button class="btn btn--ghost" type="button" data-go="${prev}" data-back>Back</button>
-          <p class="step__hint">Pick one to continue</p>
-          <button class="btn btn--primary next" type="button" data-go="${next}" disabled>${next === "note" ? "Almost done" : "Next"}</button>
-        </nav>
-      </div>`;
-    const ph = photo(C.photos[step.id], idx % 2 ? -5 : 5, "step__photo fly");
-    ph.style.setProperty("--d", 1);
-    ph.style.setProperty("--fx", "40px");
-    $(".step__photo-slot", sec).replaceWith(ph);
-
-    const grid = $(".options", sec);
-    step.options.forEach((o, n) => {
-      const b = el("button", "option");
-      b.type = "button";
-      b.dataset.id = o.id;
-      b.style.setProperty("--d", n);
-      b.setAttribute("aria-pressed", "false");
-      b.innerHTML = `<span class="option__check">${CHECK}</span>
-        <span class="option__tag">${esc(o.tag || "")}</span>
-        <span class="option__title">${esc(o.title)}</span>
-        <span class="option__text">${esc(o.text || "")}</span>`;
+  /* A choice step: tiles + "Something else" + next button */
+  function choiceStep({ n, key, title, items, nextLabel, cols3 }) {
+    const s = el(`<h2 class="title">${title}</h2><div class="grid ${cols3 ? "grid--3" : ""}"></div><div class="other" hidden><input class="input" id="${key}-other" maxlength="120" placeholder="Tell me what you have in mind"></div><button class="btn btn--grad" type="button" disabled>${nextLabel}</button>`);
+    s.prepend(progress(n));
+    const grid = $(".grid", s), otherBox = $(".other", s), other = $("input", otherBox), next = $(".btn--grad", s);
+    const names = items.map((it) => it.name);
+    const isOther = () => answers[key] !== "" && !names.includes(answers[key]) || otherBox.dataset.on === "1";
+    const paint = () => {
+      const otherOn = isOther();
+      grid.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.v === "__other" ? otherOn : (!otherOn && t.dataset.v === answers[key]))));
+      otherBox.hidden = !otherOn;
+      next.disabled = !answers[key];
+    };
+    items.forEach((it, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tile"; b.dataset.v = it.name; b.style.setProperty("--i", i);
+      b.innerHTML = `${icon(it.icon)}<span>${esc(it.name)}</span>`;
+      b.addEventListener("click", () => { otherBox.dataset.on = ""; answers[key] = it.name; save(); paint(); });
       grid.append(b);
     });
-    const other = el("button", "option option--other");
-    other.type = "button";
-    other.dataset.id = "other";
-    other.style.setProperty("--d", step.options.length);
-    other.setAttribute("aria-pressed", "false");
-    other.innerHTML = `<span class="option__check">${CHECK}</span><span class="option__plus">+</span>
-      <span class="option__title">Something else</span><span class="option__text">Have your own idea? Tell me.</span>`;
-    grid.append(other);
-    const reveal = el("div", "reveal");
-    reveal.style.gridColumn = "1 / -1";
-    reveal.innerHTML = `<div><div class="other-field">
-      <label class="field-label" for="${step.id}-other">Your idea</label>
-      <input class="field" id="${step.id}-other" type="text" maxlength="160" placeholder="Tell me what you're craving">
-    </div></div>`;
-    grid.append(reveal);
-    const otherInput = $("input", reveal);
-    otherInput.value = picks[step.id + "Other"] || "";
-
-    // Movie step extras
-    if (step.where) {
-      const ex = el("div", "extras rise");
-      ex.style.setProperty("--d", 3);
-      ex.innerHTML = `
-        <div><label class="field-label" for="movie-title">A specific movie in mind? (optional)</label>
-          <input class="field" id="movie-title" type="text" maxlength="120" placeholder="Title goes here"></div>
-        <div><span class="field-label" id="where-label">Where are we watching?</span>
-          <div class="chips" role="group" aria-labelledby="where-label">${step.where.map((w) =>
-            `<button class="chip" type="button" data-where="${esc(w.id)}" aria-pressed="false">${esc(w.title)}</button>`).join("")}</div></div>`;
-      $(".extras-slot", sec).replaceWith(ex);
-      const t = $("#movie-title", ex);
-      t.value = picks.movieTitle || "";
-      t.addEventListener("input", () => { picks.movieTitle = t.value.trim(); save(); });
-      const chips = $$(".chip", ex);
-      const paintChips = () => chips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.where === picks.movieWhere)));
-      chips.forEach((c) => c.addEventListener("click", (e) => {
-        picks.movieWhere = picks.movieWhere === c.dataset.where ? null : c.dataset.where;
-        paintChips(); save();
-        if (picks.movieWhere) burst(e.clientX, e.clientY, 10);
-      }));
-      paintChips();
-    } else {
-      $(".extras-slot", sec).remove();
-    }
-
-    const nextBtn = $(".next", sec), hint = $(".step__hint", sec);
-    const valid = () => !!picks[step.id] && (picks[step.id] !== "other" || !!picks[step.id + "Other"]);
-    const paint = () => {
-      $$(".option", grid).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === picks[step.id])));
-      reveal.classList.toggle("open", picks[step.id] === "other");
-      nextBtn.disabled = !valid();
-      hint.style.opacity = valid() ? 0 : 1;
-      hint.textContent = picks[step.id] === "other" ? "Type your idea to continue" : "Pick one to continue";
-    };
-    grid.addEventListener("click", (e) => {
-      const b = e.target.closest(".option");
-      if (!b) return;
-      picks[step.id] = b.dataset.id;
-      save(); paint();
-      if (b.dataset.id === "other") setTimeout(() => otherInput.focus({ preventScroll: true }), 250);
-      else {
-        burst(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, 18);
-        cheer(cheers[step.id] || cheers.dinner);
-      }
+    const ob = document.createElement("button");
+    ob.type = "button"; ob.className = "tile tile--wide"; ob.dataset.v = "__other"; ob.style.setProperty("--i", items.length);
+    ob.innerHTML = `${icon("plus")}<span>Something else</span>`;
+    ob.addEventListener("click", () => {
+      otherBox.dataset.on = "1";
+      if (names.includes(answers[key])) answers[key] = "";
+      answers[key] = other.value.trim() || answers[key];
+      paint(); save(); setTimeout(() => other.focus(), 50);
     });
-    otherInput.addEventListener("input", () => { picks[step.id + "Other"] = otherInput.value.trim(); save(); paint(); });
+    grid.append(ob);
+    if (answers[key] && !names.includes(answers[key])) other.value = answers[key];
+    other.addEventListener("input", () => { answers[key] = other.value.trim(); save(); paint(); });
+    other.addEventListener("keydown", (e) => { if (e.key === "Enter" && !next.disabled) next.click(); });
+    next.addEventListener("click", () => go(step + 1));
     paint();
-    stepsHost.append(sec);
-  });
-
-  /* --------------------------------------------------- cheer pop-up mascot */
-  let cheerTimer;
-  function cheer(lines) {
-    const box = $("#cheer");
-    $("#cheer-text").textContent = lines[Math.floor(Math.random() * lines.length)];
-    const slot = $(".mascot-slot", box);
-    slot.dataset.current = "";
-    setMascot(slot, Math.random() < 0.5 ? "love" : "happy");
-    box.classList.add("show");
-    clearTimeout(cheerTimer);
-    cheerTimer = setTimeout(() => box.classList.remove("show"), 1900);
+    return s;
   }
 
-  /* ---------------------------------------------- the "No" button dilemma */
-  const noBtn = $("#no-btn"), yesBtn = $("#yes-btn"), askMascot = $("#ask .mascot-slot");
-  const noLabels = ["No", "Are you sure?", "Really sure?", "Think again", "Pretty please?", "You're breaking my heart", "Last chance", "Okay, no more No"];
-  const modalLines = [
-    ['Error 404: "No" not found', '"No" is not an available answer. Please try again.'],
-    ["Nice try", "That button is just for decoration. The answer is yes."],
-    ["Hmm, suspicious", "I'm going to pretend you clicked Yes."],
-    ["Still no?", "The mochi is crying now. Look what you did."],
-    ["Okay, stop", "The Yes button is right there. It's very big. You can't miss it."]
-  ];
-  let noTries = 0;
-  const isTouch = matchMedia("(hover: none)").matches;
-  function growYes() {
-    noTries++;
-    yesBtn.style.setProperty("--grow", Math.min(1 + noTries * 0.14, 1.9).toFixed(2));
-    noBtn.textContent = noLabels[Math.min(noTries, noLabels.length - 1)];
-    setMascot(askMascot, noTries > 2 ? "sad" : "pleading");
-    $("#ask-sub").textContent = noTries > 2 ? "Please? It's your birthday and I really want to spoil you." : "Wrong button, I think.";
-  }
-  function dodge() {
-    const r = noBtn.getBoundingClientRect();
-    if (!noBtn.classList.contains("runaway")) {
-      noBtn.style.left = r.left + "px";
-      noBtn.style.top = r.top + "px";
-      noBtn.classList.add("runaway");
-      void noBtn.offsetWidth;
+  /* ---------------------------------------------------------- steps */
+  const STEPS = [
+    // 0. Happy Birthday
+    () => {
+      const s = el(`<h1 class="title title--xl">Happy Birthday, ${esc(C.herName)}!</h1><div class="photos"></div><p class="lead">${esc(C.introMessage)}</p><button class="btn btn--grad" type="button">Open your surprise ${icon("heart")}</button>`);
+      const ph = $(".photos", s);
+      (C.media.intro || []).slice(0, 3).forEach((src, i) => { const m = media(src, ["happy", "love", "happy"][i]); m.style.animationDelay = `${i * 120 + 150}ms`; ph.append(m); });
+      $(".btn", s).addEventListener("click", () => { confetti(); go(1); });
+      return s;
+    },
+
+    // 1. The big question
+    () => {
+      const s = el(`<h2 class="title">Will you let me spoil you on your birthday?</h2><div class="slot"></div><div class="row"><button class="btn btn--solid" type="button" id="yes">Yes, I'd love to!</button><button class="btn btn--outline" type="button" id="no">No</button></div>`);
+      $(".slot", s).replaceWith(media(C.media.ask, "pleading"));
+      $("#yes", s).addEventListener("click", () => { confetti(); go(2); });
+      $("#no", s).addEventListener("click", openNo);
+      return s;
+    },
+
+    // 2. Calendar
+    () => {
+      const s = el(`<h2 class="title">YAYYYYY! WHEN SHALL WE CELEBRATE?</h2><div class="slot"></div>
+        <div class="cal-box"><div class="cal"></div>
+          <div class="time">
+            <select id="hour" aria-label="Hour">${Array.from({ length: 12 }, (_, i) => `<option>${i + 1}</option>`).join("")}</select>
+            <select id="minute" aria-label="Minute">${["00", "15", "30", "45"].map((m) => `<option>${m}</option>`).join("")}</select>
+            <select id="ampm" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
+          </div></div>
+        <button class="btn btn--grad" type="button" disabled>${icon("clock")} Set our date! ${icon("heart")}</button>`);
+      s.prepend(progress(1));
+      $(".slot", s).replaceWith(media(C.media.date, "love"));
+      const next = $(".btn--grad", s);
+      ["hour", "minute", "ampm"].forEach((k) => {
+        const sel = $("#" + k, s);
+        sel.value = answers[k];
+        sel.addEventListener("change", () => { answers[k] = sel.value; save(); });
+      });
+      buildCalendar($(".cal", s), () => { next.disabled = !answers.date; });
+      next.disabled = !answers.date;
+      next.addEventListener("click", () => go(3));
+      return s;
+    },
+
+    // 3. Dinner
+    () => choiceStep({ n: 2, key: "dinner", title: "What shall we feast on, my dear?", items: C.dinner, nextLabel: "Looks delicious! 🍽️", cols3: true }),
+
+    // 4. Activity
+    () => choiceStep({ n: 3, key: "activity", title: "What shall we do together?", items: C.activity, nextLabel: "Sounds so fun! ✨", cols3: true }),
+
+    // 5. Movie
+    () => choiceStep({ n: 4, key: "movie", title: "What shall we watch together?", items: C.movies.map((m) => ({ name: m, icon: "film" })), nextLabel: "Popcorn ready! 🍿" }),
+
+    // 6. Excitement
+    () => {
+      const s = el(`<h2 class="title">How excited are you for your birthday?</h2>
+        <div class="slider-box"><input class="range" type="range" id="excite" min="0" max="100" step="25" aria-label="Excitement level">
+          <div class="range-labels"><span>😐 Can't wait!</span><span>🤩 Super duper excited!</span></div></div>
+        <div class="big spring">Excitement level: <span id="pct"></span></div>
+        <button class="btn btn--grad" type="button">Let's make it official! 💕</button>`);
+      s.prepend(progress(5));
+      const r = $("#excite", s), pct = $("#pct", s);
+      const paint = () => { pct.textContent = answers.excitement + "%"; r.style.setProperty("--v", answers.excitement + "%"); };
+      r.value = answers.excitement;
+      r.addEventListener("input", () => { answers.excitement = +r.value; save(); paint(); });
+      paint();
+      $(".btn--grad", s).addEventListener("click", () => { go(7); setTimeout(confetti, 500); });
+      return s;
+    },
+
+    // 7. It's a date
+    () => {
+      const s = el(`<h2 class="title title--xl">It's a date, my love!</h2>
+        <p class="lead">I can't wait to celebrate you on:</p>
+        <div class="pill pop"><p>${esc(fmtDate(answers.date))} at ${esc(time())}</p></div>
+        <div class="slot"></div>
+        <div class="heart-big spring" style="animation-delay:.5s">${icon("heart")}</div>
+        <div class="recap">
+          <p>We'll feast on <b>${esc(answers.dinner)}</b>,</p>
+          <p>then <b>${esc(answers.activity)}</b>,</p>
+          <p>and end the night watching <b><i>"${esc(answers.movie)}"</i></b> together.</p>
+          <p class="big">Your excitement level: <span>${answers.excitement}/100</span></p>
+        </div>
+        <div class="send"><p class="send__title">Send me your answers</p><p class="send__status" role="status"></p><div class="row"></div></div>
+        <button class="restart" type="button">Change my answers</button>`);
+      s.prepend(progress(6));
+      $(".slot", s).replaceWith(media(C.media.final, "love"));
+      setupSend(s);
+      $(".restart", s).addEventListener("click", () => go(2));
+      return s;
     }
-    const pad = 20, w = r.width, h = r.height;
-    const yr = yesBtn.getBoundingClientRect();
-    let x, y, tries = 0;
-    do {
-      x = pad + Math.random() * Math.max(1, innerWidth - w - pad * 2);
-      y = pad + 60 + Math.random() * Math.max(1, innerHeight - h - pad * 2 - 60);
-      tries++;
-    } while (tries < 20 && x < yr.right + 20 && x + w > yr.left - 20 && y < yr.bottom + 20 && y + h > yr.top - 20);
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
-    growYes();
-  }
-  function showNoModal() {
-    const [t, s] = modalLines[Math.min(Math.max(noTries - 1, 0), modalLines.length - 1)];
-    $("#no-title").textContent = t;
-    $("#no-text").textContent = s;
-    const m = $("#no-modal");
-    m.hidden = false;
-    m.classList.remove("closing");
-    const slot = $("#no-mascot");
-    slot.dataset.current = "";
-    setMascot(slot, noTries > 3 ? "sad" : "shocked");
-    $("#no-close").focus();
-  }
-  function closeNoModal() {
-    const m = $("#no-modal");
-    m.classList.add("closing");
-    setTimeout(() => { m.hidden = true; if (isTouch) dodge(); }, reduceMotion ? 0 : 240);
-  }
-  if (!isTouch) noBtn.addEventListener("pointerenter", () => { if (noTries < 4 || Math.random() < 0.7) dodge(); });
-  noBtn.addEventListener("click", (e) => { e.preventDefault(); if (!isTouch) growYes(); else noTries++; showNoModal(); });
-  $("#no-close").addEventListener("click", closeNoModal);
-  $("#no-modal").addEventListener("click", (e) => { if (e.target.id === "no-modal") closeNoModal(); });
-  addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#no-modal").hidden) closeNoModal(); });
-  yesBtn.addEventListener("click", (e) => {
-    setMascot(askMascot, "love");
-    $("#ask-sub").textContent = "Yay! Okay, let's plan it.";
-    burst(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, 60, true);
-    setTimeout(() => go("dinner"), reduceMotion ? 0 : 1100);
-  });
-  function resetNo() {
-    noBtn.classList.remove("runaway");
-    noBtn.style.left = noBtn.style.top = "";
-  }
+  ];
 
-  /* ----------------------------------------------------------- note scene */
-  const strip = $("#filmstrip");
-  const gal = C.photos.gallery || [];
-  [...gal, ...gal].forEach((p, n) => strip.append(photo(p, n % 2 ? 3 : -3)));
-  const note = $("#note-text");
-  note.value = picks.note || "";
-  note.addEventListener("input", () => { picks.note = note.value.trim(); save(); });
-  const excite = $("#excite"), exciteLabels = ["Mildly curious", "Kind of excited", "Pretty excited", "Super excited", "Can't sit still"];
-  const exciteMoods = ["sad", "pleading", "happy", "happy", "love"];
-  const paintExcite = () => {
-    const v = +excite.value;
-    $("#excite-label").textContent = exciteLabels[v - 1];
-    setMascot($("#excite-mascot"), exciteMoods[v - 1]);
-  };
-  excite.value = picks.excite || 3;
-  excite.addEventListener("input", () => { picks.excite = +excite.value; save(); paintExcite(); });
-  excite.addEventListener("change", () => { if (+excite.value === 5) { const r = excite.getBoundingClientRect(); burst(r.right - 10, r.top, 24); } });
-  paintExcite();
-
-  /* --------------------------------------------------------------- finale */
-  const label = (step) => {
-    const v = picks[step.id];
-    if (v === "other") return { main: picks[step.id + "Other"] || "Her own idea", sub: "Her own idea" };
-    const o = step.options.find((x) => x.id === v);
-    return { main: o ? o.title : "Not chosen", sub: o ? o.text : "" };
-  };
-  function summaryData() {
-    const rows = C.steps.map((s) => {
-      const l = label(s);
-      if (s.where) {
-        const where = s.where.find((w) => w.id === picks.movieWhere);
-        const bits = [picks.movieTitle ? `"${picks.movieTitle}"` : "", where ? where.title : ""].filter(Boolean);
-        if (bits.length) l.sub = bits.join(" · ");
+  /* ------------------------------------------------------- calendar */
+  function buildCalendar(host, onChange) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const bday = C.birthday ? parseISO(C.birthday) : null;
+    const start = answers.date ? parseISO(answers.date) : (bday && bday >= today ? bday : today);
+    let y = start.getFullYear(), m = start.getMonth();
+    const render = () => {
+      const first = new Date(y, m, 1);
+      const label = first.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+      const atStart = y === today.getFullYear() && m === today.getMonth();
+      let html = `<div class="cal__head"><button class="cal__nav cal__nav--prev" type="button" aria-label="Previous month" ${atStart ? "disabled" : ""}>${icon("left")}</button>
+        <span class="cal__month" aria-live="polite">${label}</span>
+        <button class="cal__nav cal__nav--next" type="button" aria-label="Next month">${icon("right")}</button></div><div class="cal__grid">`;
+      ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].forEach((d) => { html += `<span class="cal__dow">${d}</span>`; });
+      const offset = first.getDay();
+      const cells = Math.ceil((offset + new Date(y, m + 1, 0).getDate()) / 7) * 7;
+      for (let i = 0; i < cells; i++) {
+        const d = new Date(y, m, 1 - offset + i);
+        const v = iso(d);
+        const cls = ["cal__day"];
+        if (d.getMonth() !== m) cls.push("is-outside");
+        if (+d === +today) cls.push("is-today");
+        if (bday && d.getMonth() === bday.getMonth() && d.getDate() === bday.getDate()) cls.push("is-bday");
+        html += `<button type="button" class="${cls.join(" ")}" data-d="${v}" aria-pressed="${answers.date === v}" aria-label="${d.toDateString()}" ${d < today ? "disabled" : ""}>${d.getDate()}</button>`;
       }
-      return { key: s.label, ...l };
-    });
-    return rows;
+      host.innerHTML = html + "</div>";
+      $(".cal__nav--prev", host).addEventListener("click", () => { if (--m < 0) { m = 11; y--; } render(); });
+      $(".cal__nav--next", host).addEventListener("click", () => { if (++m > 11) { m = 0; y++; } render(); });
+      host.querySelectorAll(".cal__day:not(:disabled)").forEach((b) => b.addEventListener("click", () => {
+        answers.date = b.dataset.d; save();
+        const d = parseISO(b.dataset.d);
+        if (d.getMonth() !== m) { y = d.getFullYear(); m = d.getMonth(); }
+        render(); onChange();
+      }));
+    };
+    render();
   }
-  function messageText() {
-    const rows = summaryData();
-    const lines = [`Birthday picks from ${C.herName}`, ""];
-    rows.forEach((r) => lines.push(`${r.key}: ${r.main}${r.sub && r.sub !== "Her own idea" && r.key === "Movie" ? ` (${r.sub})` : ""}`));
-    lines.push(`Excitement: ${picks.excite}/5, ${exciteLabels[(picks.excite || 3) - 1]}`);
-    if (picks.note) lines.push(`Wishes: ${picks.note}`);
-    return lines.join("\n");
+
+  /* ---------------------------------------------------- "No" pop-up */
+  const modal = $("#no-modal");
+  let noMediaSet = false;
+  function openNo() {
+    if (!noMediaSet) { $("#no-media").replaceWith(media(C.media.no, "pouty")); noMediaSet = true; }
+    modal.hidden = false; modal.classList.remove("closing");
+    $("#no-yes").focus();
+  }
+  function closeNo(cb) {
+    modal.classList.add("closing");
+    setTimeout(() => { modal.hidden = true; if (cb) cb(); }, 200);
+  }
+  $("#no-yes").addEventListener("click", () => closeNo(() => { confetti(); go(2); }));
+  $("#no-x").addEventListener("click", () => closeNo());
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeNo(); });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeNo(); });
+
+  /* -------------------------------------------- getting answers to you */
+  function message() {
+    return [
+      `${C.herName}'s birthday answers`,
+      "",
+      `Date: ${fmtDate(answers.date)} at ${time()}`,
+      `Dinner: ${answers.dinner}`,
+      `Activity: ${answers.activity}`,
+      `Movie: ${answers.movie}`,
+      `Excitement: ${answers.excitement}/100`
+    ].join("\n");
   }
   let lastSent = "";
-  function renderFinale() {
-    const fan = $("#finale-photos");
-    if (!fan.childElementCount) {
-      const tilts = [-9, 2, 10], fx = ["-80px", "0px", "80px"];
-      (C.photos.finale || []).slice(0, 3).forEach((p, n) => {
-        const f = photo(p, tilts[n % 3], "fly");
-        f.style.setProperty("--d", n + 1);
-        f.style.setProperty("--fx", fx[n % 3]);
-        fan.append(f);
-      });
-    }
-    $("#summary").innerHTML = summaryData().map((r) =>
-      `<li><span class="ticket__k">${esc(r.key)}</span><span class="ticket__v">${esc(r.main)}${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span></li>`
-    ).join("");
-
-    const text = messageText();
-    $("#send-text").textContent = text;
-    const btns = $("#send-buttons");
-    btns.innerHTML = "";
+  function setupSend(s) {
+    const text = message();
+    const row = $(".send .row", s), status = $(".send__status", s);
     const phone = (C.contact.phone || "").replace(/[^\d+]/g, "");
     const email = (C.contact.email || "").trim();
-    const status = $("#send-status");
-    status.className = "send__status";
-    if (phone) {
-      const a = el("a", "btn btn--primary", `${HEART} Text me your picks`);
-      a.href = `sms:${phone}?&body=${encodeURIComponent(text)}`;
-      btns.append(a);
-    }
-    if (email) {
-      const a = el("a", phone ? "btn btn--soft" : "btn btn--primary", "Email me your picks");
-      a.href = `mailto:${email}?subject=${encodeURIComponent("My birthday picks")}&body=${encodeURIComponent(text)}`;
-      btns.append(a);
-    }
-    const copy = el("button", "btn btn--soft", "Copy my picks");
-    copy.type = "button";
+    if (phone) row.insertAdjacentHTML("beforeend", `<a class="btn btn--solid" href="sms:${phone}?&body=${encodeURIComponent(text)}">Text me your answers</a>`);
+    if (email) row.insertAdjacentHTML("beforeend", `<a class="btn ${phone ? "btn--outline" : "btn--solid"}" href="mailto:${email}?subject=${encodeURIComponent("Birthday answers")}&body=${encodeURIComponent(text)}">Email me your answers</a>`);
+    const copy = document.createElement("button");
+    copy.type = "button"; copy.className = "btn btn--outline"; copy.textContent = "Copy my answers";
     copy.addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(text); status.textContent = "Copied. Paste it into a text to me."; }
+      try { await navigator.clipboard.writeText(text); status.textContent = "Copied! Paste it in a text to me."; }
       catch (e) {
-        $(".send__details").open = true;
-        const r = document.createRange(); r.selectNodeContents($("#send-text"));
+        let pre = $(".send__text", s);
+        if (!pre) { pre = document.createElement("pre"); pre.className = "send__text"; pre.textContent = text; $(".send", s).append(pre); }
+        const r = document.createRange(); r.selectNodeContents(pre);
         const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
-        status.textContent = "Selected the message below. Copy it and send it over.";
+        status.textContent = "Copy the message below and send it to me.";
       }
     });
-    btns.append(copy);
-
-    $("#send-title").textContent = "Send me your picks";
-    if (!phone && !email && !C.formspreeEndpoint) status.textContent = "Copy your picks (or take a screenshot) and send them to me.";
-    else if (!C.formspreeEndpoint) status.textContent = "Tap a button below so I know what to book.";
+    row.append(copy);
+    status.textContent = (phone || email) ? "Tap a button so I know what to plan." : "Copy your answers (or screenshot this) and send them to me.";
 
     if (C.formspreeEndpoint && lastSent !== text) {
-      status.textContent = "Sending your picks…";
-      const payload = { _subject: `${C.herName}'s birthday picks`, message: text };
-      summaryData().forEach((r) => { payload[r.key] = r.sub ? `${r.main} (${r.sub})` : r.main; });
-      payload.Excitement = `${picks.excite}/5`;
-      payload.Wishes = picks.note || "";
-      fetch(C.formspreeEndpoint, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) })
-        .then((r) => {
-          if (!r.ok) throw new Error(r.status);
-          lastSent = text;
-          status.textContent = "Sent! I have your picks.";
-          status.classList.add("ok");
-        })
-        .catch(() => { status.textContent = `Couldn't send automatically. Use a button below instead.`; });
+      status.textContent = "Sending your answers…";
+      fetch(C.formspreeEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ _subject: `${C.herName}'s birthday answers`, date: `${fmtDate(answers.date)} at ${time()}`, dinner: answers.dinner, activity: answers.activity, movie: answers.movie, excitement: `${answers.excitement}/100`, message: text })
+      }).then((r) => {
+        if (!r.ok) throw new Error(r.status);
+        lastSent = text;
+        status.textContent = "Sent! I have your answers."; status.classList.add("ok");
+      }).catch(() => { status.textContent = "Couldn't send automatically. Use a button below instead."; });
     }
   }
 
-  /* ------------------------------------------------------------ navigation */
-  let current = "intro";
-  function go(id) {
-    if (id === current) return;
-    const from = document.getElementById(current), to = document.getElementById(id);
-    if (!to) return;
-    document.body.dataset.dir = order.indexOf(id) < order.indexOf(current) ? "back" : "fwd";
-    if (id === "finale") renderFinale();
-    from.classList.add("leaving");
-    setTimeout(() => {
-      from.hidden = true;
-      from.classList.remove("leaving", "entered");
-      if (from.id === "ask") resetNo();
-      to.hidden = false;
-      window.scrollTo({ top: 0, behavior: "auto" });
-      requestAnimationFrame(() => requestAnimationFrame(() => to.classList.add("entered")));
-      if (id === "finale") setTimeout(() => confetti(), reduceMotion ? 0 : 600);
-    }, reduceMotion ? 0 : 480);
-    current = id;
-  }
-  document.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-go]");
-    if (b && !b.disabled) go(b.dataset.go);
-  });
-
-  /* --------------------------------------------------------------- opener */
-  $("#seal").addEventListener("click", (e) => {
-    const cur = $("#curtain");
-    burst(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, 40, true);
-    cur.classList.add("is-open");
-    const intro = $("#intro");
-    intro.hidden = false;
-    setTimeout(() => intro.classList.add("entered"), reduceMotion ? 0 : 350);
-    setTimeout(() => cur.classList.add("is-gone"), reduceMotion ? 0 : 1400);
-  });
-
-  /* ------------------------------------------------- canvases: atmosphere */
-  const rose = () => getComputedStyle(document.documentElement).getPropertyValue("--rose").trim() || "#c43f6c";
-  const PALETTE = ["#e0507e", "#f6a3bd", "#ffd1dc", "#d8b37b", "#c43f6c", "#ffffff"];
-  function drawHeart(ctx, x, y, s, rot) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
-    ctx.beginPath(); ctx.moveTo(0, 4); ctx.bezierCurveTo(-6, 0, -6, -5, 0, -2); ctx.bezierCurveTo(6, -5, 6, 0, 0, 4); ctx.fill();
-    ctx.restore();
-  }
-  function fit(c) {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    c.width = innerWidth * dpr; c.height = innerHeight * dpr;
-    c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  const amb = $("#ambient"), bc = $("#burst");
-  fit(amb); fit(bc);
-  addEventListener("resize", () => { fit(amb); fit(bc); });
-
-  // Slow floating hearts in the background
-  const floaters = Array.from({ length: reduceMotion ? 0 : 22 }, () => ({
-    x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-    s: 0.8 + Math.random() * 1.8, v: 0.15 + Math.random() * 0.35,
-    sway: Math.random() * Math.PI * 2, rot: (Math.random() - .5) * .6, a: 0.08 + Math.random() * 0.14
-  }));
-  let roseColor = rose(), tick = 0;
-  (function ambient() {
-    const ctx = amb.getContext("2d");
-    if (++tick % 120 === 0) roseColor = rose();
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    ctx.fillStyle = roseColor;
-    floaters.forEach((f) => {
-      f.y -= f.v; f.sway += 0.01;
-      if (f.y < -20) { f.y = innerHeight + 20; f.x = Math.random() * innerWidth; }
-      ctx.globalAlpha = f.a;
-      drawHeart(ctx, f.x + Math.sin(f.sway) * 18, f.y, f.s, f.rot);
-    });
-    ctx.globalAlpha = 1;
-    if (floaters.length) requestAnimationFrame(ambient);
-  })();
-
-  // Bursts of hearts and confetti
-  const parts = [];
-  let running = false;
-  function burst(x, y, n = 20, big = false) {
-    if (reduceMotion) return;
-    for (let k = 0; k < n; k++) {
-      const ang = Math.random() * Math.PI * 2, sp = (big ? 4 : 2.5) + Math.random() * (big ? 6 : 3.5);
-      parts.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2, g: 0.12, life: 1, decay: 0.012 + Math.random() * 0.012,
-        s: 1 + Math.random() * 1.4, rot: Math.random() * 6, vr: (Math.random() - .5) * .2,
-        heart: Math.random() < 0.6, c: PALETTE[Math.floor(Math.random() * PALETTE.length)], w: 6 + Math.random() * 6 });
-    }
-    if (!running) { running = true; requestAnimationFrame(loop); }
-  }
-  function confetti() {
-    if (reduceMotion) return;
-    for (let k = 0; k < 120; k++) {
-      parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3,
-        g: 0.04, life: 1, decay: 0.004 + Math.random() * 0.004, s: 1 + Math.random() * 1.3, rot: Math.random() * 6, vr: (Math.random() - .5) * .25,
-        heart: Math.random() < 0.35, c: PALETTE[Math.floor(Math.random() * PALETTE.length)], w: 6 + Math.random() * 8 });
-    }
-    if (!running) { running = true; requestAnimationFrame(loop); }
-  }
-  function loop() {
-    const ctx = bc.getContext("2d");
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    for (let k = parts.length - 1; k >= 0; k--) {
-      const p = parts[k];
-      p.vy += p.g; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
-      if (p.life <= 0 || p.y > innerHeight + 40) { parts.splice(k, 1); continue; }
-      ctx.globalAlpha = Math.min(1, p.life * 1.5);
-      ctx.fillStyle = p.c;
-      if (p.heart) drawHeart(ctx, p.x, p.y, p.s, p.rot);
-      else { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); ctx.restore(); }
-    }
-    ctx.globalAlpha = 1;
-    if (parts.length) requestAnimationFrame(loop); else running = false;
-  }
+  go(0);
 })();

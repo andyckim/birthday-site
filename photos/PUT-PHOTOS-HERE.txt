@@ -1,1 +1,1 @@
-Drop your photos here. See the table in ../README.md for file names.
+Drop your photos and GIFs here. See the table in ../README.md for file names.
