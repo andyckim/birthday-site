@@ -63,20 +63,50 @@
       <circle cx="50" cy="12" r="10" fill="#fde68a" stroke="#9d174d" stroke-width="2.5"/>
     </svg>`;
   }
+  // Crochet-style bucket hats for the dogs (inspired by a knitted piggy hat).
+  function bucketHat(kind) {
+    const id = "bh" + (hatId++);
+    const pig = kind === "pig";
+    const main = pig ? "#f9b8c9" : "#8fd19e", dark = pig ? "#e07a98" : "#4f9e63", light = pig ? "#fcd3dd" : "#b9e6c2";
+    const stitches = `<pattern id="${id}s" width="8" height="7" patternUnits="userSpaceOnUse"><path d="M1 2 l3 3 l3 -3" fill="none" stroke="${light}" stroke-width="1.4" stroke-linecap="round"/></pattern>`;
+    const crown = "M24 64 Q22 16 60 13 Q98 16 96 64 Z";
+    const brim = "M4 66 Q12 57 23 61 Q33 55 43 60 Q52 55 60 59 Q68 55 77 60 Q87 55 97 61 Q108 57 116 66 Q114 80 98 78 Q87 84 77 79 Q68 85 60 80 Q52 85 43 79 Q33 84 22 78 Q6 80 4 66 Z";
+    const face = pig
+      ? `<path d="M30 30 Q22 6 46 16 Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><path d="M33 26 Q29 13 42 18 Z" fill="#f48fb1"/>
+         <path d="M90 30 Q98 6 74 16 Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><path d="M87 26 Q91 13 78 18 Z" fill="#f48fb1"/>
+         <circle cx="48" cy="35" r="3.2" fill="#2b1b22"/><circle cx="72" cy="35" r="3.2" fill="#2b1b22"/>
+         <ellipse cx="60" cy="46" rx="12" ry="7.5" fill="#f48fb1" stroke="${dark}" stroke-width="2"/>
+         <ellipse cx="56" cy="46" rx="1.8" ry="2.6" fill="#9d3a5c"/><ellipse cx="64" cy="46" rx="1.8" ry="2.6" fill="#9d3a5c"/>`
+      : `<circle cx="42" cy="18" r="12" fill="${main}" stroke="${dark}" stroke-width="2.5"/><circle cx="78" cy="18" r="12" fill="${main}" stroke="${dark}" stroke-width="2.5"/>
+         <circle cx="42" cy="18" r="7.5" fill="#fff"/><circle cx="78" cy="18" r="7.5" fill="#fff"/>
+         <circle cx="44" cy="19" r="4" fill="#1f2a22"/><circle cx="76" cy="19" r="4" fill="#1f2a22"/>
+         <circle cx="45.5" cy="17.5" r="1.3" fill="#fff"/><circle cx="77.5" cy="17.5" r="1.3" fill="#fff"/>
+         <path d="M46 44 Q60 54 74 44" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
+         <ellipse cx="38" cy="46" rx="5" ry="3" fill="#f6a5b8" opacity=".85"/><ellipse cx="82" cy="46" rx="5" ry="3" fill="#f6a5b8" opacity=".85"/>`;
+    return `<svg class="hat hat--bucket" viewBox="0 0 120 90" aria-hidden="true">
+      <defs>${stitches}</defs>
+      <path d="${crown}" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="${crown}" fill="url(#${id}s)" opacity=".7"/>
+      ${face}
+      <path d="${brim}" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="${brim}" fill="url(#${id}s)" opacity=".8"/>
+    </svg>`;
+  }
   const catAt = (n) => C.cats[((n % C.cats.length) + C.cats.length) % C.cats.length];
-  function catPic(n, extraClass = "") {
-    const c = catAt(n);
+  function petPic(pet, extraClass = "") {
     const box = document.createElement("div");
     box.className = ("catpic " + extraClass).trim();
-    box.style.setProperty("--hx", c.hat.x + "%");
-    box.style.setProperty("--hy", c.hat.y + "%");
-    box.style.setProperty("--hr", c.hat.rot + "deg");
-    box.style.setProperty("--hw", (c.hat.size || 40) + "%");
-    box.style.setProperty("--mx", c.mouth.x + "%");
-    box.style.setProperty("--my", c.mouth.y + "%");
-    box.innerHTML = `<img src="${esc(c.src)}" alt="The birthday cat in a party hat">${hatSVG()}`;
+    const h = pet.hat || {};
+    box.style.setProperty("--hx", h.x + "%");
+    box.style.setProperty("--hy", h.y + "%");
+    box.style.setProperty("--hr", (h.rot || 0) + "deg");
+    box.style.setProperty("--hw", (h.size || 40) + "%");
+    if (pet.mouth) { box.style.setProperty("--mx", pet.mouth.x + "%"); box.style.setProperty("--my", pet.mouth.y + "%"); }
+    const type = h.type || "party";
+    box.innerHTML = `<img src="${esc(pet.src)}" alt="${esc(pet.alt || "A party animal in a silly hat")}">${type === "party" ? hatSVG() : bucketHat(type)}`;
     return box;
   }
+  const catPic = (n, extraClass = "") => petPic(catAt(n), extraClass);
 
   /* --------------------------------------------- photo / GIF slots */
   // A file path, or "cat:N" for one of the party-hat cats. Missing files fall back to a cat.
@@ -384,7 +414,14 @@
         <div class="send"><p class="send__title">Send me your answers</p><p class="send__status" role="status"></p><div class="row"></div></div>
         <button class="restart" type="button">Change my answers</button>`);
       s.prepend(progress(6));
-      $(".slot", s).replaceWith(media(C.media.final));
+      if (C.media.final === "dogs" && C.dogs && C.dogs.length) {
+        const duo = document.createElement("div");
+        duo.className = "duo";
+        C.dogs.forEach((d, i) => { const p = petPic(d, "pop"); p.style.animationDelay = `${300 + i * 250}ms`; duo.append(p); });
+        $(".slot", s).replaceWith(duo);
+      } else {
+        $(".slot", s).replaceWith(media(C.media.final));
+      }
       setupSend(s);
       $(".restart", s).addEventListener("click", () => go(2));
       return s;

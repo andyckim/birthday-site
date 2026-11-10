@@ -25,7 +25,8 @@ Her answers are remembered in her browser, so a reload won't lose them.
 
 Your cat, in a drawn party hat, shows up on the question screen, in the "There is no NOOOOO" pop-up, on the calendar step and on the final screen. When she taps **Yes**, a cat pops up from the bottom of the screen and blows a party horn full of confetti. On "It's a date", two cats do it from both corners.
 
-- The photos are `photos/cat-1.jpg`, `cat-2.jpg`, `cat-3.jpg` (cropped from your iPhone pictures).
+- The photos are `photos/cat-1.jpg` to `cat-4.jpg` (cropped from your iPhone pictures).
+- The last slide shows the two dogs (`photos/dog-white.jpg`, `dog-black.jpg`) in drawn crochet bucket hats: a pink piggy hat and a green froggy hat. Their positions are under `dogs` in `config.js`; `type` can be `pig` or `frog`.
 - The hat's position, tilt and size for each photo, and where the party horn comes out of the cat's mouth, are under `cats` in `config.js`, in percent of the photo. Nudge those numbers if a hat looks off.
 - `blowerCat` picks which cat does the confetti.
 
@@ -37,12 +38,12 @@ Put files in `photos/` with these names, or open `config.js` and change the name
 |---|---|
 | Happy Birthday screen, big center picture (`intro`) | `cat:2` |
 | Cats popping up around the Happy Birthday screen (`introPoppers`) | `cat:1`, `cat:3` |
-| "Will you let me spoil you?" | `cat:1` |
+| "Will you let me spoil you?" | `cat:4` |
 | The "There is no NOOOOO" pop-up | `cat:3` |
-| Calendar step | `cat:2` |
-| "It's a date, my love!" | `cat:1` |
+| Calendar step | `cat:1` |
+| "It's a date, my love!" | `dogs`: the two dogs in crochet bucket hats |
 
-`cat:1` to `cat:3` show the party-hat cats. Replace any of them with a file path (`"photos/ask.gif"`) to use your own photo or GIF instead. Any photo spot whose file is missing shows a party-hat cat so the page never looks broken. When you open the site from your own computer, those spots also show the file name they're waiting for.
+`cat:1` to `cat:4` show the party-hat cats. Replace any of them with a file path (`"photos/ask.gif"`) to use your own photo or GIF instead. Any photo spot whose file is missing shows a party-hat cat so the page never looks broken. When you open the site from your own computer, those spots also show the file name they're waiting for.
 
 Tip: convert iPhone `.HEIC` photos to `.jpg` and shrink them to about 1200px on the long side so the site loads fast.
 

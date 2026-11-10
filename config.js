@@ -13,8 +13,8 @@ window.BIRTHDAY = {
 
   // ---- Words -------------------------------------------------------------
   introMessage:
-    "Another year of you, and I'm the lucky one who gets to celebrate it. " +
-    "I want your day to be exactly what you love, so I need a little help from you...",
+    "I feel lucky to be your boyfriend, especially on this special day. " +
+    "I want to put together the bestest day for you, so I need a little bit of help..",
 
   // ---- How her answers reach you ----------------------------------------
   // Fill in at least one. Empty ones are hidden on the last screen.
@@ -36,10 +36,10 @@ window.BIRTHDAY = {
   media: {
     intro: "cat:2",                  // the big picture on the Happy Birthday screen
     introPoppers: ["cat:1", "cat:3"],  // pop up around the page on that screen
-    ask:   "cat:1",   // "Will you let me spoil you?"
+    ask:   "cat:4",   // "Will you let me spoil you?"
     no:    "cat:3",   // the "There is no NOOOOO" pop-up
-    date:  "cat:2",   // the calendar step
-    final: "cat:1"    // "It's a date, my love!"
+    date:  "cat:1",   // the calendar step
+    final: "dogs"     // "It's a date, my love!" (the two dogs below)
   },
 
   // ---- The birthday cat --------------------------------------------------
@@ -49,7 +49,16 @@ window.BIRTHDAY = {
   cats: [
     { src: "photos/cat-1.jpg", hat: { x: 55, y: 30, rot: 27, size: 36 }, mouth: { x: 38, y: 69 } },
     { src: "photos/cat-2.jpg", hat: { x: 52, y: 22, rot: 5,  size: 40 }, mouth: { x: 47, y: 61 } },
-    { src: "photos/cat-3.jpg", hat: { x: 43, y: 21, rot: -7, size: 37 }, mouth: { x: 51, y: 61 } }
+    { src: "photos/cat-3.jpg", hat: { x: 43, y: 21, rot: -7, size: 37 }, mouth: { x: 51, y: 61 } },
+    { src: "photos/cat-4.jpg", hat: { x: 50, y: 10, rot: -6, size: 32 }, mouth: { x: 30, y: 80 } }
+  ],
+
+  // ---- The dogs (last slide) ---------------------------------------------
+  // hat type "pig" or "frog" = crochet bucket hat; x/y = where the bottom of
+  // the brim sits (in % of the photo), rot = tilt, size = hat width in %.
+  dogs: [
+    { src: "photos/dog-white.jpg", alt: "White fluffy dog in a pink piggy hat", hat: { type: "pig",  x: 50, y: 35, rot: -6,  size: 68 } },
+    { src: "photos/dog-black.jpg", alt: "Black shaggy dog in a green froggy hat", hat: { type: "frog", x: 57, y: 34, rot: -13, size: 70 } }
   ],
   blowerCat: 1,   // which cat (1-3) pops up to blow confetti
 
