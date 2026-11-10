@@ -6,6 +6,7 @@
 window.BIRTHDAY = {
   // ---- Her ---------------------------------------------------------------
   herName: "my love",
+  signature: "Andy",   // footer reads "Made with <3 - Andy"
   // Her birthday as YYYY-MM-DD. The calendar opens on this month and marks the
   // day with a little heart. Leave "" to open on the current month.
   birthday: "",
@@ -33,7 +34,8 @@ window.BIRTHDAY = {
   // Use "cat:1", "cat:2" or "cat:3" to show one of the party-hat cats below
   // instead of a file. Empty photo spots fall back to the cats too.
   media: {
-    intro: ["photos/us-1.jpg", "photos/us-2.jpg", "photos/us-3.jpg"], // Happy Birthday screen
+    intro: "cat:2",                  // the big picture on the Happy Birthday screen
+    introPoppers: ["cat:1", "cat:3"],  // pop up around the page on that screen
     ask:   "cat:1",   // "Will you let me spoil you?"
     no:    "cat:3",   // the "There is no NOOOOO" pop-up
     date:  "cat:2",   // the calendar step

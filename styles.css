@@ -103,7 +103,8 @@ button, select, input { font: inherit; }
 }
 @keyframes sparkle { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(.8); opacity: 0; } }
 
-.footer { margin-top: 32px; text-align: center; font-size: 14px; color: var(--pink-400); animation: fadeUp .5s ease .2s both; }
+.footer { margin-top: 32px; text-align: center; font-size: 14px; font-weight: 500; color: var(--pink-400); animation: fadeUp .6s ease 3.4s both; }
+.footer .beat { color: var(--rose-500); font-weight: 700; }
 .beat { display: inline-block; animation: beat 1.4s ease-in-out infinite; }
 @keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.25); } 30% { transform: scale(1); } 45% { transform: scale(1.15); } }
 
@@ -323,6 +324,24 @@ button, select, input { font: inherit; }
 .modal .media.is-cat { max-width: 190px; padding-top: 54px; }
 .photos .media.is-cat { aspect-ratio: auto; padding-top: 40px; align-self: end; }
 .hint { display: block; margin-top: 8px; font-size: 11px; color: var(--pink-300); font-family: ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+
+/* ---------- Intro: top-down reveal ---------- */
+.step .seq { animation: seqIn .75s cubic-bezier(.34, 1.3, .64, 1) both; animation-delay: var(--at, 0s); }
+@keyframes seqIn { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: none; } }
+.step .media.hero { animation-name: heroIn; animation-duration: .9s; }
+@keyframes heroIn { 0% { opacity: 0; transform: scale(.5) rotate(-8deg); } 70% { opacity: 1; transform: scale(1.06) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+.media.hero.is-cat { max-width: 300px; padding-top: 84px; }
+
+/* ---------- Intro: extra cats popping up around the page ---------- */
+.popper {
+  position: fixed; z-index: 5; width: clamp(72px, 11vw, 150px); pointer-events: none;
+  opacity: 0; transform: scale(0) rotate(-30deg);
+}
+.popper .catpic img { border-width: 4px; }
+.popper.show { animation: popperIn .6s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+.popper.hide { animation: popperOut .45s ease-in forwards; }
+@keyframes popperIn { from { opacity: 0; transform: scale(0) rotate(-30deg); } to { opacity: 1; transform: scale(1) rotate(var(--tilt, 0deg)); } }
+@keyframes popperOut { from { opacity: 1; transform: scale(1) rotate(var(--tilt, 0deg)); } to { opacity: 0; transform: scale(0) rotate(30deg); } }
 
 /* ---------- Cat pops up and blows confetti ---------- */
 .blower {

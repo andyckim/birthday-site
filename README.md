@@ -2,7 +2,7 @@
 
 A little website for her birthday: a pastel pink page with hearts floating up the background and one soft card that walks her through:
 
-1. **Happy Birthday, my love!** with three photos of you two
+1. **Happy Birthday <3**, revealed top-down: the title, then one big party-hat cat, then the message and button while two more cats pop up around the page and keep hopping to new spots
 2. **"Will you let me spoil you on your birthday?"** Yes / No. Pressing **No** pops up *There is no "NOOOOOO". You must come with me!*
 3. **YAYYYYY! When shall we celebrate?** A calendar plus hour / minute / AM-PM
 4. **Dinner** picks
@@ -35,13 +35,14 @@ Put files in `photos/` with these names, or open `config.js` and change the name
 
 | Spot | Default |
 |---|---|
-| Happy Birthday screen (3 photos of you two) | `us-1.jpg`, `us-2.jpg`, `us-3.jpg` |
+| Happy Birthday screen, big center picture (`intro`) | `cat:2` |
+| Cats popping up around the Happy Birthday screen (`introPoppers`) | `cat:1`, `cat:3` |
 | "Will you let me spoil you?" | `cat:1` |
 | The "There is no NOOOOO" pop-up | `cat:3` |
 | Calendar step | `cat:2` |
 | "It's a date, my love!" | `cat:1` |
 
-`cat:1` to `cat:3` show the party-hat cats. Replace any of them with a file path (`"photos/ask.gif"`) to use your own photo or GIF instead. Any photo spot that's still empty, like the three "us" photos until you add them, shows a party-hat cat so the page never looks broken. When you open the site from your own computer, those spots also show the file name they're waiting for.
+`cat:1` to `cat:3` show the party-hat cats. Replace any of them with a file path (`"photos/ask.gif"`) to use your own photo or GIF instead. Any photo spot whose file is missing shows a party-hat cat so the page never looks broken. When you open the site from your own computer, those spots also show the file name they're waiting for.
 
 Tip: convert iPhone `.HEIC` photos to `.jpg` and shrink them to about 1200px on the long side so the site loads fast.
 
@@ -50,6 +51,7 @@ Tip: convert iPhone `.HEIC` photos to `.jpg` and shrink them to about 1200px on 
 Everything is in `config.js`:
 
 - `herName`, `introMessage`
+- `signature`: the footer reads "Made with <3 - Andy"
 - `birthday`: her birthday as `YYYY-MM-DD`. The calendar opens on that month and puts a little heart on the day.
 - `dinner`, `activity`, `movies`: the choices. Each option has a `name`, an optional `sub` line (neighborhood, year), an `icon`, and optional `links` that show as small buttons under it (Google reviews for the restaurants, Trailer and About for the movies). Add, remove or rename freely. Icons available: utensils, coffee, fish, flame, wine, home, spa, palette, sun, gamepad, museum, star, film, heart, popcorn.
 

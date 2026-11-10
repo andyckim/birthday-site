@@ -142,6 +142,74 @@
     });
   }
 
+  /* ------------------- extra cats that pop up around the intro page */
+  let popTimers = [], popEls = [];
+  function placeRandomly(node, other) {
+    // Any free spot on screen that doesn't cover the title, the big cat, the message, the button or the other cat.
+    const w = innerWidth, h = innerHeight, size = node.offsetWidth || 120;
+    const hatRoom = size * 0.35;
+    const rectsOf = (e) => {
+      if (e.matches("h1, p")) { const r = document.createRange(); r.selectNodeContents(e); return Array.from(r.getClientRects()); }
+      const btn = e.querySelector(".btn");
+      return [(btn || e).getBoundingClientRect()];
+    };
+    const blocked = Array.from(document.querySelectorAll("#stage .seq")).flatMap(rectsOf)
+      .filter((r) => r.bottom > 0 && r.top < h);
+    if (other) blocked.push({ left: other.x, top: other.y - hatRoom, right: other.x + size, bottom: other.y + size });
+    const hits = (x, y) => blocked.some((r) => x < r.right + 10 && x + size > r.left - 10 && y - hatRoom < r.bottom + 10 && y + size > r.top - 10);
+    let best = null;
+    for (let tries = 0; tries < 80; tries++) {
+      const x = 8 + Math.random() * Math.max(1, w - size - 16);
+      const y = hatRoom + 8 + Math.random() * Math.max(1, h - size - hatRoom - 16);
+      if (!hits(x, y)) { best = { x, y }; break; }
+    }
+    if (!best) {
+      // No free space (very small screen): tuck it into a corner instead.
+      const corner = Math.random() < 0.5;
+      best = { x: corner ? 4 : w - size - 4, y: h - size - 12 };
+    }
+    node.style.left = best.x + "px";
+    node.style.top = best.y + "px";
+    node.style.setProperty("--tilt", (Math.random() * 24 - 12).toFixed(1) + "deg");
+    return best;
+  }
+  function startPoppers(delays) {
+    stopPoppers();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const spots = [];
+    (C.media.introPoppers || []).forEach((src, i) => {
+      const m = /^cat:(\d+)$/.exec(src || "");
+      const wrap = document.createElement("div");
+      wrap.className = "popper";
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.append(m ? catPic(+m[1] - 1) : media(src));
+      document.body.append(wrap);
+      popEls.push(wrap);
+      const appear = () => {
+        spots[i] = placeRandomly(wrap, spots[1 - i]);
+        wrap.classList.remove("hide");
+        void wrap.offsetWidth;
+        wrap.classList.add("show");
+      };
+      const hop = () => {
+        wrap.classList.remove("show");
+        wrap.classList.add("hide");
+        popTimers.push(setTimeout(appear, 550));
+      };
+      popTimers.push(setTimeout(() => {
+        appear();
+        // then hop somewhere new every few seconds
+        popTimers.push(setInterval(hop, 4200 + i * 1300));
+      }, delays[i] || 2000));
+    });
+  }
+  function stopPoppers() {
+    popTimers.forEach((t) => { clearTimeout(t); clearInterval(t); });
+    popTimers = [];
+    popEls.forEach((p) => { p.classList.remove("show"); p.classList.add("hide"); setTimeout(() => p.remove(), 500); });
+    popEls = [];
+  }
+
   /* ---------------------------------------------------------- state */
   const STORE = "birthdayAnswers";
   const answers = { date: null, hour: "7", minute: "00", ampm: "PM", dinner: "", activity: "", movie: "", excitement: 50 };
@@ -230,12 +298,14 @@
 
   /* ---------------------------------------------------------- steps */
   const STEPS = [
-    // 0. Happy Birthday
+    // 0. Happy Birthday: title, then the cat, then the message and button (top-down)
     () => {
-      const s = el(`<h1 class="title title--xl">Happy Birthday, ${esc(C.herName)}!</h1><div class="photos"></div><p class="lead">${esc(C.introMessage)}</p><button class="btn btn--grad" type="button">Open your surprise ${icon("heart")}</button>`);
-      const ph = $(".photos", s);
-      (C.media.intro || []).slice(0, 3).forEach((src, i) => { const m = media(src); m.style.animationDelay = `${i * 120 + 150}ms`; ph.append(m); });
-      $(".btn", s).addEventListener("click", () => { confetti(); go(1); });
+      const s = el(`<h1 class="title title--xl seq" style="--at:.2s">Happy Birthday &lt;3</h1><div class="slot"></div><p class="lead seq" style="--at:2s">${esc(C.introMessage)}</p><div class="seq" style="--at:2.8s"><button class="btn btn--grad" type="button">Open your surprise ${icon("heart")}</button></div>`);
+      const hero = media(C.media.intro, "hero seq");
+      hero.style.setProperty("--at", "1s");
+      $(".slot", s).replaceWith(hero);
+      $(".btn", s).addEventListener("click", () => { stopPoppers(); confetti(); go(1); });
+      startPoppers([2000, 2800]);
       return s;
     },
 
@@ -424,6 +494,9 @@
       }).catch(() => { status.textContent = "Couldn't send automatically. Use a button below instead."; });
     }
   }
+
+  const sig = $("#signature");
+  if (sig && C.signature) sig.textContent = C.signature;
 
   go(0);
 })();
