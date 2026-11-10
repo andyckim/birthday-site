@@ -3,13 +3,13 @@
 A little website for her birthday: a pastel pink page with hearts floating up the background and one soft card that walks her through:
 
 1. **Happy Birthday <3**, revealed top-down: the title, then one big party-hat cat, then the message and button while two more cats pop up around the page and keep hopping to new spots
-2. **"Will you let me spoil you on your birthday?"** Yes / No. Pressing **No** pops up *There is no "NOOOOOO". You must come with me!*
+2. **"Will you let me spoil you on your birthday?"** Yes / No. The **No** button runs away 3 or 4 times ("Nope!", "Too slow!", "Catch me!") while Yes grows, then gives up; pressing it pops up *There is no "NOOOOOO". You must come with me!*
 3. **YAYYYYY! When shall we celebrate?** A calendar plus hour / minute / AM-PM
 4. **Dinner** picks
 5. **Activity** picks
 6. **Movie** picks
 7. **How excited are you?** slider
-8. **It's a date, my love!** Her answers, plus buttons to send them to you
+8. **It's a date, my love!** The two dogs snuggled inside a drawn heart, her answers, plus buttons to send them to you
 
 Each choice step also has a **Something else** option where she can type her own idea. Confetti, fade-in transitions and a step progress bar throughout.
 
@@ -89,6 +89,7 @@ Repo **Settings → Pages → Deploy from a branch → `main` / `(root)` → Sav
 
 ```
 index.html   page shell
+vendor/      confetti library (canvas-confetti, ISC license), bundled so it always loads
 styles.css   pastel look, floating hearts, transitions
 app.js       the steps, calendar, "No" pop-up, the confetti cat, sending answers
 config.js    <- everything you edit

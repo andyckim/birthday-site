@@ -169,6 +169,20 @@ button, select, input { font: inherit; }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 
+/* ---------- The runaway "No" button ---------- */
+#yes { transform: scale(var(--grow, 1)); transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), background-color .3s ease; }
+#yes:hover { transform: scale(calc(var(--grow, 1) * 1.05)); }
+.btn--outline.runaway {
+  position: fixed; z-index: 45; touch-action: none; white-space: nowrap;
+  transform: rotate(var(--spin, 0deg));
+  transition: left .4s cubic-bezier(.34, 1.56, .64, 1), top .4s cubic-bezier(.34, 1.56, .64, 1), transform .4s ease, background-color .3s ease;
+  box-shadow: 0 10px 20px -8px rgba(236, 72, 153, .45);
+}
+.btn--outline.runaway:hover { transform: rotate(var(--spin, 0deg)) scale(1.05); }
+.btn--outline.tired { animation: tired .6s ease .4s; }
+@keyframes tired { 0%, 100% { transform: rotate(var(--spin, 0deg)); } 30% { transform: rotate(-6deg) translateY(4px); } 60% { transform: rotate(6deg) translateY(2px); } }
+.no-ghost { display: inline-block; }
+
 /* ---------- Choice tiles ---------- */
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
 @media (min-width: 640px) { .grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -325,10 +339,22 @@ button, select, input { font: inherit; }
 .photos .media.is-cat { aspect-ratio: auto; padding-top: 40px; align-self: end; }
 .hint { display: block; margin-top: 8px; font-size: 11px; color: var(--pink-300); font-family: ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
 
-/* ---------- Dogs on the last slide ---------- */
-.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 4vw, 40px); max-width: 480px; margin: 0 auto 16px; padding-top: 56px; }
-.duo .catpic:nth-child(1) { transform: rotate(-4deg); }
-.duo .catpic:nth-child(2) { transform: rotate(4deg); }
+/* ---------- Dogs on the last slide, inside a big heart ---------- */
+.duo { position: relative; width: min(420px, 100%); aspect-ratio: 200 / 180; margin: 72px auto 24px; }
+.duo__heart { position: absolute; inset: -4%; width: 108%; height: 108%; overflow: visible; animation: heartBeat 2.4s ease-in-out 2.2s infinite; transform-origin: 50% 55%; }
+.duo__heart path {
+  fill: rgba(251, 207, 232, .5); stroke: var(--pink-400); stroke-width: 3.5; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1; fill-opacity: 0;
+  animation: heartDraw 1.4s ease .3s forwards, heartFill .8s ease 1.4s forwards;
+}
+@keyframes heartDraw { to { stroke-dashoffset: 0; } }
+@keyframes heartFill { to { fill-opacity: 1; } }
+@keyframes heartBeat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.04); } 24% { transform: scale(1); } 36% { transform: scale(1.03); } }
+.duo__pet { position: absolute; top: 36%; width: 47%; transform: translate(-50%, -50%) rotate(var(--lean)); }
+.duo__pet--left { left: 28.5%; --lean: 6deg; animation: snuggleL 1s cubic-bezier(.34, 1.56, .64, 1) .4s both; z-index: 1; }
+.duo__pet--right { left: 71.5%; --lean: -6deg; animation: snuggleR 1s cubic-bezier(.34, 1.56, .64, 1) .65s both; z-index: 2; }
+@keyframes snuggleL { from { opacity: 0; transform: translate(-90%, -50%) rotate(-10deg) scale(.7); } to { opacity: 1; transform: translate(-50%, -50%) rotate(var(--lean)); } }
+@keyframes snuggleR { from { opacity: 0; transform: translate(-10%, -50%) rotate(10deg) scale(.7); } to { opacity: 1; transform: translate(-50%, -50%) rotate(var(--lean)); } }
 .catpic .hat--bucket { transform-origin: 50% 86%; transform: translate(-50%, -86%) rotate(var(--hr)); animation-name: bucketWiggle; }
 @keyframes bucketWiggle {
   0%, 100% { transform: translate(-50%, -86%) rotate(calc(var(--hr) - 3deg)); }

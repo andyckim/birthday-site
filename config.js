@@ -58,7 +58,7 @@ window.BIRTHDAY = {
   // the brim sits (in % of the photo), rot = tilt, size = hat width in %.
   dogs: [
     { src: "photos/dog-white.jpg", alt: "White fluffy dog in a pink piggy hat", hat: { type: "pig",  x: 50, y: 35, rot: -6,  size: 68 } },
-    { src: "photos/dog-black.jpg", alt: "Black shaggy dog in a green froggy hat", hat: { type: "frog", x: 57, y: 34, rot: -13, size: 70 } }
+    { src: "photos/dog-black.jpg", alt: "Black shaggy dog in a green froggy hat", hat: { type: "frog", x: 52, y: 15, rot: -14, size: 70 } }
   ],
   blowerCat: 1,   // which cat (1-3) pops up to blow confetti
 

@@ -140,8 +140,12 @@
     </svg>`;
   const CONFETTI_COLORS = ["#ec4899", "#f472b6", "#fbcfe8", "#f43f5e", "#fde68a", "#c4b5fd", "#ffffff"];
   function catBlow(sides = ["left"]) {
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!window.confetti || reduce) { confetti(); return; }
+    if (!window.confetti) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Reduce Motion is on: skip the cat animation but still celebrate.
+      sides.forEach((side) => window.confetti({ particleCount: 120, angle: side === "left" ? 60 : 120, spread: 60, origin: { x: side === "left" ? 0.05 : 0.95, y: 0.9 }, colors: CONFETTI_COLORS, zIndex: 60 }));
+      return;
+    }
     sides.forEach((side, k) => {
       const wrap = document.createElement("div");
       wrap.className = `blower blower--${side}`;
@@ -256,7 +260,7 @@
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const fmtDate = (s) => s ? parseISO(s).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
 
-  const confetti = () => { if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); };
+  const confetti = () => { if (window.confetti) window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 60 }); };
 
   /* ------------------------------------------------------- stepping */
   const stage = $("#stage");
@@ -266,6 +270,7 @@
     const old = stage.firstElementChild;
     const show = () => {
       step = n;
+      document.querySelectorAll(".runaway").forEach((e) => e.remove());
       stage.innerHTML = "";
       stage.append(STEPS[n]());
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -350,7 +355,7 @@
       const s = el(`<h2 class="title">Will you let me spoil you on your birthday?</h2><div class="slot"></div><div class="row"><button class="btn btn--solid" type="button" id="yes">Yes, I'd love to!</button><button class="btn btn--outline" type="button" id="no">No</button></div>`);
       $(".slot", s).replaceWith(media(C.media.ask));
       $("#yes", s).addEventListener("click", () => { catBlow(["left"]); go(2); });
-      $("#no", s).addEventListener("click", openNo);
+      setupRunawayNo($("#no", s), $("#yes", s));
       return s;
     },
 
@@ -421,10 +426,20 @@
         <button class="restart" type="button">Change my answers</button>`);
       s.prepend(progress(6));
       if (C.media.final === "dogs" && C.dogs && C.dogs.length) {
+        // The two dogs snuggled into the two halves of a big drawn heart.
         const duo = document.createElement("div");
         duo.className = "duo";
-        C.dogs.forEach((d, i) => { const p = petPic(d, "pop"); p.style.animationDelay = `${300 + i * 250}ms`; duo.append(p); });
+        duo.innerHTML = `<svg class="duo__heart" viewBox="0 0 200 180" aria-hidden="true">
+          <path pathLength="1" d="M100 174 C42 134 2 100 2 56 C2 24 26 2 56 2 C76 2 92 12 100 28 C108 12 124 2 144 2 C174 2 198 24 198 56 C198 100 158 134 100 174 Z"/></svg>`;
+        C.dogs.slice(0, 2).forEach((d, i) => {
+          const spot = document.createElement("div");
+          spot.className = `duo__pet duo__pet--${i ? "right" : "left"}`;
+          const p = petPic(d);
+          spot.append(p);
+          duo.append(spot);
+        });
         $(".slot", s).replaceWith(duo);
+        $(".heart-big", s).remove();
       } else {
         $(".slot", s).replaceWith(media(C.media.final));
       }
@@ -470,6 +485,57 @@
       }));
     };
     render();
+  }
+
+  /* ------------------------------ the "No" button runs away a few times */
+  function setupRunawayNo(no, yes) {
+    const maxDodges = 3 + Math.floor(Math.random() * 2); // 3 or 4, then it gives up
+    const taunts = ["Nope!", "Too slow!", "Catch me!", "Hehe, nope"];
+    let dodges = 0, lastDodge = 0;
+    const cooling = () => performance.now() - lastDodge < 500; // one attempt = one dodge
+    const dodge = () => {
+      if (cooling()) return;
+      lastDodge = performance.now();
+      dodges++;
+      const r = no.getBoundingClientRect(), y = yes.getBoundingClientRect();
+      if (!no.classList.contains("runaway")) {
+        // Leave a placeholder so the Yes button doesn't jump when No leaves the row.
+        const ghost = document.createElement("span");
+        ghost.className = "no-ghost";
+        ghost.style.width = r.width + "px";
+        no.after(ghost);
+        no.style.left = r.left + "px";
+        no.style.top = r.top + "px";
+        no.classList.add("runaway");
+        document.body.append(no); // free of the card's animation, so it can roam the whole screen
+        void no.offsetWidth;
+      }
+      no.textContent = dodges < maxDodges ? taunts[(dodges - 1) % taunts.length] : "Okay fine... No?";
+      const pad = 16, w = no.offsetWidth + 16, h = no.offsetHeight + 8; // measured with the new text
+      let x, t, tries = 0;
+      do {
+        x = pad + Math.random() * Math.max(1, innerWidth - w - pad * 2);
+        t = pad + Math.random() * Math.max(1, innerHeight - h - pad * 2);
+        tries++;
+      } while (tries < 40 && (Math.hypot(x - r.left, t - r.top) < 140 ||
+               (x < y.right + 24 && x + w > y.left - 24 && t < y.bottom + 24 && t + h > y.top - 24)));
+      no.style.left = x + "px";
+      no.style.top = t + "px";
+      no.style.setProperty("--spin", (Math.random() * 30 - 15).toFixed(0) + "deg");
+      yes.style.setProperty("--grow", (1 + dodges * 0.12).toFixed(2));
+      if (dodges >= maxDodges) no.classList.add("tired");
+    };
+    const canDodge = () => dodges < maxDodges;
+    // Mouse: it slips away as soon as the cursor gets near it.
+    no.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse" && canDodge()) dodge(); });
+    // Touch: it jumps away the moment a finger lands on it.
+    no.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" && canDodge()) { e.preventDefault(); dodge(); } });
+    no.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (cooling()) return;                // the same tap that just made it run
+      if (canDodge()) { dodge(); return; } // keyboard or a lucky click
+      openNo();
+    });
   }
 
   /* ---------------------------------------------------- "No" pop-up */
