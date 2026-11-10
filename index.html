@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy Birthday, Love</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="ambient" aria-hidden="true"></canvas>
+<canvas id="burst" aria-hidden="true"></canvas>
+
+<!-- Opening curtain: tap the seal to begin -->
+<div class="curtain" id="curtain">
+  <div class="curtain__half curtain__half--l"></div>
+  <div class="curtain__half curtain__half--r"></div>
+  <div class="curtain__center">
+    <p class="curtain__eyebrow">For you, on your day</p>
+    <button class="seal" id="seal" type="button" aria-label="Open your birthday surprise">
+      <span class="seal__ring"></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+    </button>
+    <p class="curtain__hint">Tap the seal to open</p>
+  </div>
+</div>
+
+<main class="stage">
+
+  <!-- 1. Happy Birthday -->
+  <section class="scene" id="intro" hidden>
+    <div class="intro">
+      <p class="eyebrow rise" style="--d:0">A little something, made by hand</p>
+      <h1 class="script" id="hbd" aria-label="Happy Birthday"></h1>
+      <p class="intro__to rise" style="--d:6">to <span id="her-name"></span></p>
+      <div class="polaroid-row" id="intro-photos"></div>
+      <p class="lede rise" style="--d:9" id="intro-message"></p>
+      <div class="rise" style="--d:10">
+        <button class="btn btn--primary" type="button" data-go="ask">I have a question for you</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1b. The big question (the "No" button is not an option) -->
+  <section class="scene" id="ask" hidden>
+    <div class="ask">
+      <div class="mascot-slot rise" style="--d:0" data-mascot="pleading"></div>
+      <h2 class="display rise" style="--d:1">Will you let me plan your whole birthday?</h2>
+      <p class="sub rise" style="--d:2" id="ask-sub">Think carefully. There is only one right answer.</p>
+      <div class="ask__buttons rise" style="--d:3" id="ask-buttons">
+        <button class="btn btn--primary btn--yes" id="yes-btn" type="button">Yes, obviously</button>
+        <button class="btn btn--soft btn--no" id="no-btn" type="button">No</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2-4. Dinner, activity, movie (built from config.js) -->
+  <div id="steps"></div>
+
+  <!-- 5. Anything else -->
+  <section class="scene" id="note" hidden>
+    <div class="note">
+      <header class="step__head">
+        <p class="eyebrow rise" style="--d:0">One last thing</p>
+        <h2 class="display rise" style="--d:1">Anything else you're wishing for?</h2>
+        <p class="sub rise" style="--d:2">A cake flavor, a dress code, a friend to invite, a nap. Totally optional.</p>
+      </header>
+      <div class="filmstrip rise" style="--d:3" aria-label="Photos of us">
+        <div class="filmstrip__track" id="filmstrip"></div>
+      </div>
+      <div class="excite rise" style="--d:4">
+        <div class="mascot-slot mascot-slot--sm" id="excite-mascot" data-mascot="happy"></div>
+        <div class="excite__body">
+          <label class="field-label" for="excite">How excited are you?</label>
+          <input type="range" id="excite" min="1" max="5" step="1" value="3">
+          <p class="excite__label" id="excite-label">Pretty excited</p>
+        </div>
+      </div>
+      <div class="rise" style="--d:5">
+        <label class="field-label" for="note-text">Your wish list</label>
+        <textarea id="note-text" class="field field--area" rows="4" placeholder="Chocolate cake, please. And you in that blue shirt."></textarea>
+      </div>
+      <nav class="step__nav rise" style="--d:6">
+        <button class="btn btn--ghost" type="button" data-go="movie" data-back>Back</button>
+        <button class="btn btn--primary" type="button" data-go="finale">That's everything</button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- 6. Finale + how the answers get to you -->
+  <section class="scene" id="finale" hidden>
+    <div class="finale">
+      <div class="mascot-slot mascot-slot--party rise" style="--d:0" data-mascot="love"></div>
+      <p class="eyebrow rise" style="--d:0">Your birthday, planned</p>
+      <h2 class="script script--md rise" style="--d:1">It's a date.</h2>
+      <div class="polaroid-fan" id="finale-photos"></div>
+
+      <ol class="ticket rise" style="--d:5" id="summary"></ol>
+
+      <p class="lede rise" style="--d:6" id="finale-message"></p>
+
+      <div class="send rise" style="--d:7">
+        <p class="send__title" id="send-title">Send your picks</p>
+        <p class="send__status" id="send-status" role="status"></p>
+        <div class="send__buttons" id="send-buttons"></div>
+        <details class="send__details">
+          <summary>See the message</summary>
+          <pre class="send__text" id="send-text"></pre>
+        </details>
+      </div>
+
+      <nav class="step__nav step__nav--center rise" style="--d:8">
+        <button class="btn btn--ghost" type="button" data-go="dinner" data-back>Change something</button>
+      </nav>
+    </div>
+  </section>
+
+</main>
+
+<!-- "No" is not an available answer -->
+<div class="modal" id="no-modal" hidden role="dialog" aria-modal="true" aria-labelledby="no-title">
+  <div class="modal__card">
+    <div class="mascot-slot" id="no-mascot" data-mascot="shocked"></div>
+    <h3 class="modal__title" id="no-title">Error 404: "No" not found</h3>
+    <p class="modal__text" id="no-text">"No" is not an available answer. Please try again.</p>
+    <button class="btn btn--primary" type="button" id="no-close">Okay, fine</button>
+  </div>
+</div>
+
+<!-- Little reaction mascot that pops up when she picks something -->
+<div class="cheer" id="cheer" aria-hidden="true">
+  <div class="mascot-slot mascot-slot--sm" data-mascot="happy"></div>
+  <p class="cheer__bubble" id="cheer-text">Ooh, good choice</p>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
