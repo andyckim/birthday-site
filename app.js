@@ -243,8 +243,14 @@
   /* ---------------------------------------------------------- state */
   const STORE = "birthdayAnswers";
   const answers = { date: null, hour: "7", minute: "00", ampm: "PM", dinner: "", activity: "", movie: "", excitement: 50 };
-  try { Object.assign(answers, JSON.parse(localStorage.getItem(STORE) || "{}")); } catch (e) {}
-  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(answers)); } catch (e) {} };
+  // Saved answers are only reused while the options are the same; editing the
+  // options in config.js resets them, so a removed option never comes back.
+  const optionsKey = JSON.stringify([C.dinner, C.activity, C.movies].map((list) => (list || []).map((o) => (typeof o === "string" ? o : o.name))));
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || "{}");
+    if (saved.optionsKey === optionsKey) Object.assign(answers, saved.answers || {});
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ optionsKey, answers })); } catch (e) {} };
   const time = () => `${answers.hour}:${answers.minute} ${answers.ampm}`;
   const parseISO = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
